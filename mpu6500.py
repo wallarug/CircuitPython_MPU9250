@@ -27,8 +27,8 @@ MicroPython I2C driver for MPU6500 6-axis motion tracking device
 __version__ = "0.1.0-a"
 
 # pylint: disable=import-error
-import ustruct
-import utime
+import struct
+import time
 #from machine import I2C, Pin
 import Adafruit_GPIO.I2C
 #from micropython import const
@@ -174,7 +174,7 @@ class MPU6500:
         n = float(count)
 
         while count:
-            utime.sleep_ms(delay)
+            time.sleep(delay/1000)
             gx, gy, gz = self.gyro
             ox += gx
             oy += gy
@@ -184,25 +184,28 @@ class MPU6500:
         self._gyro_offset = (ox / n, oy / n, oz / n)
         return self._gyro_offset
 
-    def _read_register_short(self, register, buf=bytearray(2)):
-        self.i2c.readfrom_mem_into(self.address, register, buf)
-        return ustruct.unpack(">h", buf)[0]
+    def _read_register_short(self, register):
+        #self.i2c.readfrom_mem_into(self.address, register, buf)
+        buf = self.i2c.read_i2c_block_data(self.address, register, 2)
+        return struct.unpack(">h", buf)[0]
 
-    def _write_register_short(self, register, value, buf=bytearray(2)):
-        ustruct.pack_into(">h", buf, 0, value)
-        return self.i2c.writeto_mem(self.address, register, buf)
+    def _write_register_short(self, register, value):
+        buf = struct.pack(">h", value)
+        self.i2c.write_i2c_block_data(self.address, register, buf)
 
-    def _read_register_three_shorts(self, register, buf=bytearray(6)):
-        self.i2c.readfrom_mem_into(self.address, register, buf)
-        return ustruct.unpack(">hhh", buf)
+    def _read_register_three_shorts(self, register):
+        buf = self.i2c.read_i2c_block_data(self.address, register, 6)
+        return struct.unpack(">hhh", buf)
 
-    def _read_register_char(self, register, buf=bytearray(1)):
-        self.i2c.readfrom_mem_into(self.address, register, buf)
-        return buf[0]
+    def _read_register_char(self, register):
+        #self.i2c.readfrom_mem_into(self.address, register, buf)
+        #return buf[0]
+        return self.i2c.read_byte_data(self.address, register)
 
-    def _write_register_char(self, register, value, buf=bytearray(1)):
-        ustruct.pack_into("<b", buf, 0, value)
-        return self.i2c.writeto_mem(self.address, register, buf)
+    def _write_register_char(self, register, value):
+        #ustruct.pack_into("<b", buf, 0, value)
+        #return self.i2c.writeto_mem(self.address, register, buf)
+        self.i2c.write_byte_data(self.address, register, value)
 
     def _accel_fs(self, value):
         self._write_register_char(_ACCEL_CONFIG, value)
