@@ -1,4 +1,5 @@
 # Copyright (c) 2018-2019 Mika Tuupola
+# Copyright (c) 2019      Eike Welk
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of  this software and associated documentation files (the "Software"), to
@@ -18,14 +19,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# https://github.com/tuupola/micropython-mpu9250
 # https://www.akm.com/akm/en/file/datasheet/AK8963C.pdf
 
+
 """
-MicroPython I2C driver for AK8963 magnetometer
+Python I2C driver for AK8963 magnetometer
 """
 
-__version__ = "0.2.1"
+__version__ = "0.1.0-a"
 
 # pylint: disable=import-error
 import struct
@@ -90,6 +91,8 @@ class AK8963:
         self._write_register_char(_CNTL1, _MODE_POWER_DOWN)
 
         # Should wait atleast 100us before next mode
+        time.sleep(100e-6) #RaspberryPi much faster than original platform
+
         self._adjustement = (
             (0.5 * (asax - 128)) / 128 + 1,
             (0.5 * (asay - 128)) / 128 + 1,
@@ -187,26 +190,21 @@ class AK8963:
         return self._offset, self._scale
 
     def _read_register_short(self, register):
-        #self.i2c.readfrom_mem_into(self.address, register, buf)
         buf = self.i2c.read_i2c_block_data(self.address, register, 2)
-        return struct.unpack(">h", buf)[0]
+        return struct.unpack("<h", buf)[0]
 
     def _write_register_short(self, register, value):
-        buf = struct.pack(">h", value)
+        buf = struct.pack("<h", value)
         self.i2c.write_i2c_block_data(self.address, register, buf)
 
     def _read_register_three_shorts(self, register):
         buf = self.i2c.read_i2c_block_data(self.address, register, 6)
-        return struct.unpack(">hhh", buf)
+        return struct.unpack("<hhh", buf)
 
     def _read_register_char(self, register):
-        #self.i2c.readfrom_mem_into(self.address, register, buf)
-        #return buf[0]
         return self.i2c.read_byte_data(self.address, register)
 
     def _write_register_char(self, register, value):
-        #ustruct.pack_into("<b", buf, 0, value)
-        #return self.i2c.writeto_mem(self.address, register, buf)
         self.i2c.write_byte_data(self.address, register, value)
 
     def __enter__(self):
