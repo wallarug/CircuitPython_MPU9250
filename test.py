@@ -1,3 +1,7 @@
+"""
+Test data aquisition from the sensors in a loop.
+"""
+
 import time
 import mpu6500
 import ak8963
@@ -20,7 +24,7 @@ for _ in range(100):
     print("Rotation    :", rot)
     print("Temperature :", temp)
     print("Duration IMU:", t_imu_end - t_start)
-    print("Magnetic    :")
+    print("Magnetic    :", mfield)
     print("Duration MAG:", t_mag_end - t_imu_end)
     print()
 

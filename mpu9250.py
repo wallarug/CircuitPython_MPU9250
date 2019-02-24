@@ -1,4 +1,5 @@
 # Copyright (c) 2018-2019 Mika Tuupola
+# Copyright (c) 2019      Eike Welk
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of  this software and associated documentation files (the "Software"), to
@@ -18,30 +19,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# https://github.com/tuupola/micropython-mpu9250
 
 """
-MicroPython I2C driver for MPU9250 9-axis motion tracking device
+Python I2C driver for MPU9250 9-axis motion tracking device
 """
 
 # pylint: disable=import-error
-from micropython import const
 from mpu6500 import MPU6500
 from ak8963 import AK8963
 # pylint: enable=import-error
 
-__version__ = "0.2.1"
+__version__ = "0.1.0-a"
 
 class MPU9250:
     """Class which provides interface to MPU9250 9-axis motion tracking device."""
-    def __init__(self, i2c, mpu6500 = None, ak8963 = None):
+    def __init__(self, mpu6500 = None, ak8963 = None):
         if mpu6500 is None:
-            self.mpu6500 = MPU6500(i2c)
+            self.mpu6500 = MPU6500()
         else:
             self.mpu6500 = mpu6500
 
         if ak8963 is None:
-            self.ak8963 = AK8963(i2c)
+            self.ak8963 = AK8963()
         else:
             self.ak8963 = ak8963
 

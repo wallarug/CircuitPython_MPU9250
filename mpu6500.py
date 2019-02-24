@@ -1,4 +1,5 @@
 # Copyright (c) 2018-2019 Mika Tuupola
+# Copyright (c) 2019      Eike Welk
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of  this software and associated documentation files (the "Software"), to
@@ -18,10 +19,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# https://github.com/tuupola/micropython-mpu9250
 
 """
-MicroPython I2C driver for MPU6500 6-axis motion tracking device
+Python I2C driver for MPU6500 6-axis motion tracking device
 """
 
 __version__ = "0.1.0-a"
@@ -29,9 +29,7 @@ __version__ = "0.1.0-a"
 # pylint: disable=import-error
 import struct
 import time
-#from machine import I2C, Pin
 import Adafruit_GPIO.I2C
-#from micropython import const
 # pylint: enable=import-error
 
 _GYRO_CONFIG = 0x1b
@@ -185,7 +183,6 @@ class MPU6500:
         return self._gyro_offset
 
     def _read_register_short(self, register):
-        #self.i2c.readfrom_mem_into(self.address, register, buf)
         buf = self.i2c.read_i2c_block_data(self.address, register, 2)
         return struct.unpack(">h", buf)[0]
 
@@ -198,13 +195,9 @@ class MPU6500:
         return struct.unpack(">hhh", buf)
 
     def _read_register_char(self, register):
-        #self.i2c.readfrom_mem_into(self.address, register, buf)
-        #return buf[0]
         return self.i2c.read_byte_data(self.address, register)
 
     def _write_register_char(self, register, value):
-        #ustruct.pack_into("<b", buf, 0, value)
-        #return self.i2c.writeto_mem(self.address, register, buf)
         self.i2c.write_byte_data(self.address, register, value)
 
     def _accel_fs(self, value):
