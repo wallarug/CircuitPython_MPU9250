@@ -11,22 +11,22 @@ with open(path.join(cwd, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="micropython-mpu9250",
+    name="python_mpu9250",
     py_modules=["mpu9250", "mpu6500", "ak8963"],
-    version="0.2.1",
-    description="MicroPython I2C driver for MPU9250 9-axis motion tracking device",
+    version="0.1.0",
+    description="Python I2C driver for MPU9250 9-axis motion tracking device",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords="accelerometer, gyro, magnetometer, micropython, i2c",
-    url="https://github.com/tuupola/micropython-mpu9250",
+    keywords="accelerometer, gyro, magnetometer, python, i2c",
+    url="https://github.com/eike-welk/python_mpu9250.git",
     author="Mika Tuupola",
     author_email="tuupola@appelsiini.net",
-    maintainer="Mika Tuupola",
-    maintainer_email="tuupola@appelsiini.net",
+    maintainer="Eike Welk",
+    maintainer_email="eike.welk@gmx.net",
     license="MIT",
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Programming Language :: Python :: Implementation :: MicroPython",
+        "Programming Language :: Python :: Implementation :: CPython",
         "License :: OSI Approved :: MIT License",
     ],
 )
