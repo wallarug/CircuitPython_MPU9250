@@ -5,10 +5,8 @@ MPU-9250 is a System in Package (SiP) which combines two chips: MPU-6500 which c
 This library communicates with these sensors over I2C. It is written for the
 RaspberryPi 3+, but it should work with small adaptions on other Linux
 computers.
-
-This library uses `Adafruit_PureIO.smbus` for I2C operations, which is
+It uses `Adafruit_PureIO.smbus` for I2C operations, which is
 written completely in Python, without any C or Cython parts.
-`Adafruit_PureIO.smbus` is also used for the PCA9685 PWM servo controller.
 
 ## Usage
 
