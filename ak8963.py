@@ -49,8 +49,8 @@ _ASAZ = 0x12
 
 _MODE_POWER_DOWN = 0b00000000
 MODE_SINGLE_MEASURE = 0b00000001
-MODE_CONTINOUS_MEASURE_1 = 0b00000010 # 8Hz
-MODE_CONTINOUS_MEASURE_2 = 0b00000110 # 100Hz
+MODE_CONTINUOUS_MEASURE_1 = 0b00000010 # 8Hz
+MODE_CONTINUOUS_MEASURE_2 = 0b00000110 # 100Hz
 MODE_EXTERNAL_TRIGGER_MEASURE = 0b00000100
 _MODE_SELF_TEST = 0b00001000
 _MODE_FUSE_ROM_ACCESS = 0b00001111
@@ -65,7 +65,7 @@ class AK8963:
     """Class which provides interface to AK8963 magnetometer."""
     def __init__(
         self, i2c_interface=None, busnum=1, address=0x0c,
-        mode=MODE_CONTINOUS_MEASURE_1, output=OUTPUT_16_BIT,
+        mode=MODE_CONTINUOUS_MEASURE_1, output=OUTPUT_16_BIT,
         offset=(0, 0, 0), scale=(1, 1, 1)
     ):
         if i2c_interface is None:
@@ -83,17 +83,17 @@ class AK8963:
         if 0x48 != self.whoami:
             raise RuntimeError("AK8963 not found in I2C bus.")
 
-        # Sensitivity adjustement values
+        # Sensitivity adjustment values
         self._write_register_char(_CNTL1, _MODE_FUSE_ROM_ACCESS)
         asax = self._read_register_char(_ASAX)
         asay = self._read_register_char(_ASAY)
         asaz = self._read_register_char(_ASAZ)
         self._write_register_char(_CNTL1, _MODE_POWER_DOWN)
 
-        # Should wait atleast 100us before next mode
+        # Should wait at least 100us before next mode
         time.sleep(100e-6) #RaspberryPi much faster than original platform
 
-        self._adjustement = (
+        self._adjustment = (
             (0.5 * (asax - 128)) / 128 + 1,
             (0.5 * (asay - 128)) / 128 + 1,
             (0.5 * (asaz - 128)) / 128 + 1
@@ -115,10 +115,10 @@ class AK8963:
         xyz = list(self._read_register_three_shorts(_HXL))
         self._read_register_char(_ST2) # Enable updating readings again
 
-        # Apply factory axial sensitivy adjustements
-        xyz[0] *= self._adjustement[0]
-        xyz[1] *= self._adjustement[1]
-        xyz[2] *= self._adjustement[2]
+        # Apply factory axial sensitivy adjustments
+        xyz[0] *= self._adjustment[0]
+        xyz[1] *= self._adjustment[1]
+        xyz[2] *= self._adjustment[2]
 
         # Apply output scale determined in constructor
         so = self._so
@@ -139,8 +139,8 @@ class AK8963:
         return tuple(xyz)
 
     @property
-    def adjustement(self):
-        return self._adjustement
+    def adjustment(self):
+        return self._adjustment
 
     @property
     def whoami(self):

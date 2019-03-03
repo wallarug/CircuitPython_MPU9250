@@ -1,4 +1,5 @@
-micropython_mpu9250.egg-info/
+python_mpu9250.egg-info/
+__pycache__/
 dist/
 main.py
 

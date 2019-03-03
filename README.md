@@ -2,6 +2,14 @@
 
 MPU-9250 is a System in Package (SiP) which combines two chips: MPU-6500 which contains 3-axis gyroscope and 3-axis accelerometer and an AK8963 which is a 3-axis digital compass.
 
+This library communicates with these sensors over I2C. It is written for the
+RaspberryPi 3+, but it should work with small adaptions on other Linux
+computers.
+
+This library uses `Adafruit_PureIO.smbus` for I2C operations, which is
+written completely in Python, without any C or Cython parts.
+`Adafruit_PureIO.smbus` is also used for the PCA9685 PWM servo controller.
+
 ## Usage
 
 Simple test with never ending loop.
@@ -19,7 +27,7 @@ while True:
     print(sensor.gyro)
     print(sensor.magnetic)
 
-    time.sleep_ms(1000)
+    time.sleep(1000)
 ```
 
 The library returns a 3-tuple of X, Y, Z axis values for either acceleration, gyroscope and magnetometer ie compass. Default units are `m/s^2`, `rad/s` and `uT`. It is possible to also get acceleration values in `g` and gyro values `deg/s`. See the example below. 
@@ -28,9 +36,9 @@ Note that both the MPU6500 and the AK8963 drivers are available as separate clas
 
 ## Magnetometer Calibration
 
-For real life applications you should almost always [calibrate the magnetometer](https://appelsiini.net/2018/calibrate-magnetometer/). The AK8963 driver supports both hard and soft iron correction. Calibration function takes two parameters: `count` is the number of samples to collect and `delay` is the delay in millisecods between the samples.
+For real life applications you should almost always [calibrate the magnetometer](https://appelsiini.net/2018/calibrate-magnetometer/). The AK8963 driver supports both hard and soft iron correction. Calibration function takes two parameters: `count` is the number of samples to collect and `delay` is the delay in milliseconds between the samples.
 
-With the default values of `256` and `200` calibration takes aproximately one minute. While calibration function is running the sensor should be rotated multiple times around each axis.
+With the default values of `256` and `200` calibration takes approximately one minute. While calibration function is running the sensor should be rotated multiple times around each axis.
 
 ```python
 from mpu9250 import MPU9250
@@ -42,7 +50,7 @@ offset, scale = ak8963.calibrate(count=256, delay=200)
 sensor = MPU9250(ak8963=ak8963)
 ```
 
-After finishing calibration the `calibrate()` method also returns tuples for both hard iron `offset` and soft iron `scale`. To avoid calibrating after each startup it would make sense to strore these values in NVRAM or config file and pass them to the AK8963 constructor. Below example only illustrates how to use the constructor.
+After finishing calibration the `calibrate()` method also returns tuples for both hard iron `offset` and soft iron `scale`. To avoid calibrating after each startup it would make sense to store these values in NVRAM or config file and pass them to the AK8963 constructor. Below example only illustrates how to use the constructor.
 
 ```python
 from mpu9250 import MPU9250

@@ -77,7 +77,7 @@ _GYRO_SO_2000DPS = 16.4
 _TEMP_SO = 333.87
 _TEMP_OFFSET = 21
 
-# Used for enablind and disabling the i2c bypass access
+# Used for enabling and disabling the i2c bypass access
 _I2C_BYPASS_MASK = 0b00000010
 _I2C_BYPASS_EN = 0b00000010
 _I2C_BYPASS_DIS = 0b00000000
@@ -156,7 +156,7 @@ class MPU6500:
     @property
     def temperature(self):
         """
-        Die temperature in celcius as a float.
+        Die temperature in celsius as a float.
         """
         temp = self._read_register_short(_TEMP_OUT_H)
         return ((temp - _TEMP_OFFSET) / _TEMP_SO) + _TEMP_OFFSET
