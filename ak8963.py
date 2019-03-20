@@ -80,7 +80,7 @@ class AK8963:
         self._offset = offset
         self._scale = scale
 
-        if 0x48 != self.whoami:
+        if 0x48 != self.read_whoami():
             raise RuntimeError("AK8963 not found in I2C bus.")
 
         # Sensitivity adjustment values
@@ -107,8 +107,7 @@ class AK8963:
         else:
             self._so = _SO_14BIT
 
-    @property
-    def magnetic(self):
+    def read_magnetic(self):
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
         """
@@ -138,12 +137,7 @@ class AK8963:
 
         return tuple(xyz)
 
-    @property
-    def adjustment(self):
-        return self._adjustment
-
-    @property
-    def whoami(self):
+    def read_whoami(self):
         """ Value of the whoami register. """
         return self._read_register_char(_WIA)
 
@@ -151,14 +145,14 @@ class AK8963:
         self._offset = (0, 0, 0)
         self._scale = (1, 1, 1)
 
-        reading = self.magnetic
+        reading = self.read_magnetic()
         minx = maxx = reading[0]
         miny = maxy = reading[1]
         minz = maxz = reading[2]
 
         while count:
             time.sleep(delay / 1000)
-            reading = self.magnetic
+            reading = self.read_magnetic()
             minx = min(minx, reading[0])
             maxx = max(maxx, reading[0])
             miny = min(miny, reading[1])

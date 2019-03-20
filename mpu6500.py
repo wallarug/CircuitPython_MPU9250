@@ -106,7 +106,7 @@ class MPU6500:
         #self.i2c = i2c
         self.address = address
 
-        if 0x71 != self.whoami:
+        if 0x71 != self.read_whoami():
             raise RuntimeError("MPU6500 not found in I2C bus.")
 
         self._accel_so = self._accel_fs(accel_fs)
@@ -121,8 +121,7 @@ class MPU6500:
         char |= _I2C_BYPASS_EN
         self._write_register_char(_INT_PIN_CFG, char)
 
-    @property
-    def acceleration(self):
+    def read_acceleration(self):
         """
         Acceleration measured by the sensor. By default will return a
         3-tuple of X, Y, Z axis acceleration values in m/s^2 as floats. Will
@@ -135,8 +134,7 @@ class MPU6500:
         xyz = self._read_register_three_shorts(_ACCEL_XOUT_H)
         return tuple([value / so * sf for value in xyz])
 
-    @property
-    def gyro(self):
+    def read_gyro(self):
         """
         X, Y, Z radians per second as floats.
         """
@@ -153,16 +151,14 @@ class MPU6500:
 
         return tuple(xyz)
 
-    @property
-    def temperature(self):
+    def read_temperature(self):
         """
         Die temperature in celsius as a float.
         """
         temp = self._read_register_short(_TEMP_OUT_H)
         return ((temp - _TEMP_OFFSET) / _TEMP_SO) + _TEMP_OFFSET
 
-    @property
-    def whoami(self):
+    def read_whoami(self):
         """ Value of the whoami register. """
         return self._read_register_char(_WHO_AM_I)
 
@@ -173,7 +169,7 @@ class MPU6500:
 
         while count:
             time.sleep(delay/1000)
-            gx, gy, gz = self.gyro
+            gx, gy, gz = self.read_gyro()
             ox += gx
             oy += gy
             oz += gz

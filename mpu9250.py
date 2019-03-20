@@ -44,34 +44,30 @@ class MPU9250:
         else:
             self.ak8963 = ak8963
 
-    @property
-    def acceleration(self):
+    def read_acceleration(self):
         """
         Acceleration measured by the sensor. By default will return a
         3-tuple of X, Y, Z axis values in m/s^2 as floats. To get values in g
         pass `accel_fs=SF_G` parameter to the MPU6500 constructor.
         """
-        return self.mpu6500.acceleration
+        return self.mpu6500.read_acceleration()
 
-    @property
-    def gyro(self):
+    def read_gyro(self):
         """
         Gyro measured by the sensor. By default will return a 3-tuple of
         X, Y, Z axis values in rad/s as floats. To get values in deg/s pass
         `gyro_sf=SF_DEG_S` parameter to the MPU6500 constructor.
         """
-        return self.mpu6500.gyro
+        return self.mpu6500.read_gyro()
 
-    @property
-    def magnetic(self):
+    def reaad_magnetic(self):
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
         """
-        return self.ak8963.magnetic
+        return self.ak8963.re4ad_magnetic()
 
-    @property
-    def whoami(self):
-        return self.mpu6500.whoami
+    def read_whoami(self):
+        return self.mpu6500.read_whoami()
 
     def __enter__(self):
         return self
