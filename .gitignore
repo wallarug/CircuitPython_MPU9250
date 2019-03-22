@@ -1,5 +1,11 @@
+# Python internal machinery
 python_mpu9250.egg-info/
 __pycache__/
 dist/
-main.py
+
+# Visual Studio Code configuration
+.vscode/
+
+# Vim
+*.swp
 

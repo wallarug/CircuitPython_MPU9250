@@ -15,11 +15,11 @@ mag = ak8963.AK8963()
 t_start_loop = time.time()
 for _ in range(n_iterations):
     t_start = time.time()
-    acc = imu.acceleration
-    rot = imu.gyro
-    temp = imu.temperature
+    acc = imu.read_acceleration()
+    rot = imu.read_gyro()
+    temp = imu.read_temperature()
     t_imu_end = time.time()
-    mfield = mag.magnetic
+    mfield = mag.read_magnetic()
     t_mag_end = t_end = time.time()
 
     print("Acceleration:", acc)

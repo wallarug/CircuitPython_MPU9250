@@ -65,7 +65,7 @@ class AK8963:
     """Class which provides interface to AK8963 magnetometer."""
     def __init__(
         self, i2c_interface=None, busnum=1, address=0x0c,
-        mode=MODE_CONTINUOUS_MEASURE_1, output=OUTPUT_16_BIT,
+        mode=MODE_CONTINUOUS_MEASURE_2, output=OUTPUT_16_BIT,
         offset=(0, 0, 0), scale=(1, 1, 1)
     ):
         if i2c_interface is None:
@@ -80,7 +80,7 @@ class AK8963:
         self._offset = offset
         self._scale = scale
 
-        if 0x48 != self.whoami:
+        if 0x48 != self.read_whoami():
             raise RuntimeError("AK8963 not found in I2C bus.")
 
         # Sensitivity adjustment values
@@ -91,7 +91,7 @@ class AK8963:
         self._write_register_char(_CNTL1, _MODE_POWER_DOWN)
 
         # Should wait at least 100us before next mode
-        time.sleep(100e-6) #RaspberryPi much faster than original platform
+        time.sleep(100e-6)
 
         self._adjustment = (
             (0.5 * (asax - 128)) / 128 + 1,
@@ -107,8 +107,7 @@ class AK8963:
         else:
             self._so = _SO_14BIT
 
-    @property
-    def magnetic(self):
+    def read_magnetic(self):
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
         """
@@ -138,27 +137,35 @@ class AK8963:
 
         return tuple(xyz)
 
-    @property
-    def adjustment(self):
-        return self._adjustment
-
-    @property
-    def whoami(self):
+    def read_whoami(self):
         """ Value of the whoami register. """
         return self._read_register_char(_WIA)
 
-    def calibrate(self, count=256, delay=200):
+    def calibrate(self, count=256, delay=0.200):
+        """
+        Calibrate the magnetometer.
+
+        The magnetometer needs to be turned in alll possible directions
+        during the callibration process. Ideally each axis would once 
+        line up with the magnetic field.
+
+        count: int
+            Number of magnetometer readings that are taken for the calibration.
+        
+        delay: float
+            Delay between the magntometer readings in seconds.
+        """
         self._offset = (0, 0, 0)
         self._scale = (1, 1, 1)
 
-        reading = self.magnetic
+        reading = self.read_magnetic()
         minx = maxx = reading[0]
         miny = maxy = reading[1]
         minz = maxz = reading[2]
 
         while count:
-            time.sleep(delay / 1000)
-            reading = self.magnetic
+            time.sleep(delay)
+            reading = self.read_magnetic()
             minx = min(minx, reading[0])
             maxx = max(maxx, reading[0])
             miny = min(miny, reading[1])
