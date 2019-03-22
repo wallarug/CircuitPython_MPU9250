@@ -60,11 +60,11 @@ class MPU9250:
         """
         return self.mpu6500.read_gyro()
 
-    def reaad_magnetic(self):
+    def read_magnetic(self):
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
         """
-        return self.ak8963.re4ad_magnetic()
+        return self.ak8963.read_magnetic()
 
     def read_whoami(self):
         return self.mpu6500.read_whoami()
