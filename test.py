@@ -6,12 +6,14 @@ import time
 import mpu6500
 import ak8963
 
-interval = 0.5
+interval = 1 / 20 # [s]
+n_iterations = 100
 
 imu = mpu6500.MPU6500()
 mag = ak8963.AK8963()
 
-for _ in range(100):
+t_start_loop = time.time()
+for _ in range(n_iterations):
     t_start = time.time()
     acc = imu.acceleration
     rot = imu.gyro
@@ -31,4 +33,11 @@ for _ in range(100):
     t_end = time.time()
     remaining = max(0, interval - (t_end - t_start))
     time.sleep(remaining)
+
+t_end_loop = time.time()
+t_total = t_end_loop - t_start_loop
+print("Total time       :", t_total)
+print("Average loop time:", t_total / n_iterations)
+print("Loop frequency   :", n_iterations / t_total)
+
 
