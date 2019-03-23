@@ -21,9 +21,9 @@ sensor = MPU9250()
 print("MPU9250 id: " + hex(sensor.whoami))
 
 while True:
-    print(sensor.acceleration)
-    print(sensor.gyro)
-    print(sensor.magnetic)
+    print(sensor.read_acceleration())
+    print(sensor.read_gyro())
+    print(sensor.read_magnetic())
 
     time.sleep(1000)
 ```
