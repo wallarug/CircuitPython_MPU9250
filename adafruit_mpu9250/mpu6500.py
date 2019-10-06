@@ -140,7 +140,7 @@ class MPU6500:
         sf = self._gyro_sf
         ox, oy, oz = self._gyro_offset
 
-        xyz = self._read_register_three_shorts(_GYRO_XOUT_H)
+        xyz = self._read_bytes(_GYRO_XOUT_H, 6)
         xyz = [value / so * sf for value in xyz]
 
         xyz[0] -= ox
@@ -153,12 +153,12 @@ class MPU6500:
         """
         Die temperature in celsius as a float.
         """
-        temp = self._read_register_short(_TEMP_OUT_H)
+        temp = self._read_bytes(_TEMP_OUT_H, 2)
         return ((temp - _TEMP_OFFSET) / _TEMP_SO) + _TEMP_OFFSET
 
     def read_whoami(self):
         """ Value of the whoami register. """
-        return self._read_register_char(_WHO_AM_I)
+        return self._read_u8(_WHO_AM_I)
 
     def calibrate_gyro(self, count=256, delay=0):
         ox, oy, oz = (0.0, 0.0, 0.0)
@@ -180,24 +180,28 @@ class MPU6500:
     def _read_u8(self, sensor_type, address):
         device = self.i2c
         with device as i2c:
-            self._BUFFER[0] = address & 0xFF
-            i2c.write(self._BUFFER, end=1, stop=False)
-            i2c.readinto(self._BUFFER, end=1)
-        return self._BUFFER[0]
+            buf[0] = address & 0xFF
+            i2c.write(buf, end=1, stop=False)
+            i2c.readinto(buf, end=1)
+        return struct.unpack(">h", buf)[0]
 
-    def _read_bytes(self, sensor_type, address, count, buf):
+    def _read_bytes(self, sensor_type, address, count):
         device = self.i2c
         with device as i2c:
             buf[0] = address & 0xFF
             i2c.write(buf, end=1, stop=False)
             i2c.readinto(buf, end=count)
+        if count == 2:
+            return struct.unpack(">h", buf)[0]
+        elif count == 6:
+            return struct.unpack(">hhh", buf)
 
     def _write_u8(self, sensor_type, address, val):
         device = self.i2c
         with device as i2c:
-            self._BUFFER[0] = address & 0xFF
-            self._BUFFER[1] = val & 0xFF
-            i2c.write(self._BUFFER, end=2)
+            buf[0] = address & 0xFF
+            buf[1] = val & 0xFF
+            i2c.write(buf, end=2)
 
     def _accel_fs(self, value):
         self._write_register_char(_ACCEL_CONFIG, value)
