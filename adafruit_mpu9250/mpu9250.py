@@ -1,5 +1,6 @@
 # Copyright (c) 2018-2019 Mika Tuupola
 # Copyright (c) 2019      Eike Welk
+# Copyright (c) 2019      Cian Byrne (wallarug) for Robotics Masters Limited 
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of  this software and associated documentation files (the "Software"), to
@@ -29,7 +30,7 @@ from adafruit_mpu9250.mpu6500 import MPU6500
 from adafruit_mpu9250.ak8963 import AK8963
 # pylint: enable=import-error
 
-__version__ = "0.2.0-a"
+__version__ = "1.0.1"
 
 class MPU9250:
     """Class which provides interface to MPU9250 9-axis motion tracking device."""

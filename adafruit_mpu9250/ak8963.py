@@ -1,5 +1,6 @@
 # Copyright (c) 2018-2019 Mika Tuupola
 # Copyright (c) 2019      Eike Welk
+# Copyright (c) 2019      Cian Byrne (wallarug) for Robotics Masters Limited 
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of  this software and associated documentation files (the "Software"), to
@@ -27,7 +28,7 @@ Python I2C driver for AK8963 magnetometer
 """
 import time
 
-__version__ = "0.2.0-a"
+__version__ = "1.0.1"
 __repo__ = "https://github.com/wallarug/circuitpython_mpu9250"
 
 try:
