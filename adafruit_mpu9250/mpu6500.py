@@ -100,7 +100,7 @@ class MPU6500:
         accel_sf=SF_M_S2, gyro_sf=SF_RAD_S,
         gyro_offset=(0, 0, 0)
     ):
-        iself.i2c = i2c_device.I2CDevice(i2c_interface, address)
+        self.i2c = i2c_device.I2CDevice(i2c_interface, address)
         
         self.address = address
 
@@ -177,15 +177,18 @@ class MPU6500:
         return self._gyro_offset
 
     def _read_register_short(self, register):
-        buf = self.i2c.read_i2c_block_data(self.address, register, 2)
+        self.i2c.write(register, end=1, stop=False)
+        self.i2c.readinto(buf, end=1)
         return struct.unpack(">h", buf)[0]
 
     def _write_register_short(self, register, value):
-        buf = struct.pack(">h", value)
-        self.i2c.write_i2c_block_data(self.address, register, buf)
+        buf = struct.pack(">hh", address, value)
+        self.i2c.write(buf, end=2)
+        #self.i2c.write_i2c_block_data(self.address, register, buf)
 
     def _read_register_three_shorts(self, register):
-        buf = self.i2c.read_i2c_block_data(self.address, register, 6)
+        self.i2c.write(register, end=1, stop=False)
+        self.i2c.readinto(buf, end=6)
         return struct.unpack(">hhh", buf)
 
     def _read_register_char(self, register):
