@@ -2,11 +2,8 @@
 
 MPU-9250 is a System in Package (SiP) which combines two chips: MPU-6500 which contains 3-axis gyroscope and 3-axis accelerometer and an AK8963 which is a 3-axis digital compass.
 
-This library communicates with these sensors over I2C. It is written for the
-RaspberryPi 3+, but it should work with small adaptions on other Linux
-computers.
-It uses `Adafruit_PureIO.smbus` for I2C operations, which is
-written completely in Python, without any C or Cython parts.
+This library communicates with these sensors over I2C. It is written for 
+CircuitPython.
 
 ## Usage
 
