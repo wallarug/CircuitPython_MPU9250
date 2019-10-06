@@ -66,6 +66,12 @@ class MPU9250:
         """
         return self.ak8963.read_magnetic()
 
+    def read_temperature(self):
+        """
+        Temperature measured by the sensor.
+        """
+        return self.mpu6500.read_temperature()
+
     def read_whoami(self):
         return self.mpu6500.read_whoami()
 

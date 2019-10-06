@@ -25,7 +25,7 @@
 """
 Python I2C driver for AK8963 magnetometer
 """
-from time import sleep
+import time
 
 __version__ = "0.2.0-a"
 __repo__ = "https://github.com/wallarug/circuitpython_mpu9250"
@@ -69,6 +69,8 @@ _SO_16BIT = 0.15 # μT per digit when 16bit mode
 
 class AK8963:
     """Class which provides interface to AK8963 magnetometer."""
+
+    _BUFFER = bytearray(6)
     def __init__(
         self, i2c_interface=None, busnum=1, address=0x0c,
         mode=MODE_CONTINUOUS_MEASURE_2, output=OUTPUT_16_BIT,
@@ -84,11 +86,11 @@ class AK8963:
             raise RuntimeError("AK8963 not found in I2C bus.")
 
         # Sensitivity adjustment values
-        self._write_register_char(_CNTL1, _MODE_FUSE_ROM_ACCESS)
-        asax = self._read_register_char(_ASAX)
-        asay = self._read_register_char(_ASAY)
-        asaz = self._read_register_char(_ASAZ)
-        self._write_register_char(_CNTL1, _MODE_POWER_DOWN)
+        self._write_u8(_CNTL1, _MODE_FUSE_ROM_ACCESS)
+        asax = self._read_u8(_ASAX)
+        asay = self._read_u8(_ASAY)
+        asaz = self._read_u8(_ASAZ)
+        self._write_u8(_CNTL1, _MODE_POWER_DOWN)
 
         # Should wait at least 100us before next mode
         time.sleep(100e-6)
@@ -100,7 +102,7 @@ class AK8963:
         )
 
         # Power on
-        self._write_register_char(_CNTL1, (mode | output))
+        self._write_u8(_CNTL1, (mode | output))
 
         if output is OUTPUT_16_BIT:
             self._so = _SO_16BIT
@@ -111,8 +113,8 @@ class AK8963:
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
         """
-        xyz = list(self._read_register_three_shorts(_HXL))
-        self._read_register_char(_ST2) # Enable updating readings again
+        xyz = list(self._read_bytes(_HXL, 6))
+        self._read_u8(_ST2) # Enable updating readings again
 
         # Apply factory axial sensitivy adjustments
         xyz[0] *= self._adjustment[0]
@@ -139,7 +141,7 @@ class AK8963:
 
     def read_whoami(self):
         """ Value of the whoami register. """
-        return self._read_register_char(_WIA)
+        return self._read_u8(_WIA)
 
     def calibrate(self, count=256, delay=0.200):
         """
@@ -196,23 +198,31 @@ class AK8963:
 
         return self._offset, self._scale
 
-    def _read_register_short(self, register):
-        buf = self.i2c.read_i2c_block_data(self.address, register, 2)
-        return struct.unpack("<h", buf)[0]
+    def _read_u8(self, address):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.readinto(self._BUFFER, end=1)
+        return self._BUFFER[0]
 
-    def _write_register_short(self, register, value):
-        buf = struct.pack("<h", value)
-        self.i2c.write_i2c_block_data(self.address, register, buf)
+    def _read_bytes(self, address, count):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.readinto(self._BUFFER, end=count)
+        if count == 2:
+            return struct.unpack("<h", self._BUFFER)[0]
+        elif count == 6:
+            return struct.unpack("<hhh", self._BUFFER)
 
-    def _read_register_three_shorts(self, register):
-        buf = self.i2c.read_i2c_block_data(self.address, register, 6)
-        return struct.unpack("<hhh", buf)
-
-    def _read_register_char(self, register):
-        return self.i2c.read_byte_data(self.address, register)
-
-    def _write_register_char(self, register, value):
-        self.i2c.write_byte_data(self.address, register, value)
+    def _write_u8(self, address, val):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            self._BUFFER[1] = val & 0xFF
+            i2c.write(self._BUFFER, end=2)
 
     def __enter__(self):
         return self

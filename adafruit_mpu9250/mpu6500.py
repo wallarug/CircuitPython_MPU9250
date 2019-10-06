@@ -219,13 +219,14 @@ class MPU6500:
             i2c.write(self._BUFFER, end=1, stop=False)
             i2c.readinto(self._BUFFER, end=count)
         if count == 2:
-            return struct.unpack(">h", self._BUFFER)[0]
-        elif count == 6:
-            return struct.unpack(">hhh", self._BUFFER)
+            buf = bytearray(4)
+            buf[0] = self._BUFFER[0]
+            buf[1] = self._BUFFER[1]
+            return struct.unpack(">hh", buf)[0]
+        return struct.unpack(">hhh", self._BUFFER)
 
     def _write_u8(self, address, val):
-        device = self.i2c
-        with device as i2c:
+        device = self.i2c        with device as i2c:
             self._BUFFER[0] = address & 0xFF
             self._BUFFER[1] = val & 0xFF
             i2c.write(self._BUFFER, end=2)
