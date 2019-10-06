@@ -178,7 +178,7 @@ class MPU6500:
 
     def _read_register_short(self, register):
         self.i2c.write(register, end=1, stop=False)
-        self.i2c.readinto(buf, end=1)
+        self.i2c.readinto(buf, end=2)
         return struct.unpack(">h", buf)[0]
 
     def _write_register_short(self, register, value):
@@ -192,10 +192,15 @@ class MPU6500:
         return struct.unpack(">hhh", buf)
 
     def _read_register_char(self, register):
-        return self.i2c.read_byte_data(self.address, register)
+        self.i2c.write(register, end=1, stop=False)
+        self.i2c.readinto(buf, end=2)
+        return buf
+        #return self.i2c.read_byte_data(self.address, register)
 
     def _write_register_char(self, register, value):
-        self.i2c.write_byte_data(self.address, register, value)
+        buf = struct.pack(">hh", address, value)
+        self.i2c.write(buf, end=2)
+        #self.i2c.write_byte_data(self.address, register, value)
 
     def _accel_fs(self, value):
         self._write_register_char(_ACCEL_CONFIG, value)
