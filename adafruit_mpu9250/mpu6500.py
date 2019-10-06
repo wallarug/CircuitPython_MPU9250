@@ -24,13 +24,18 @@
 Python I2C driver for MPU6500 6-axis motion tracking device
 """
 
-__version__ = "0.1.0-a"
+from time import sleep
 
-# pylint: disable=import-error
-import struct
-import time
-import Adafruit_GPIO.I2C
-# pylint: enable=import-error
+__version__ = "0.2.0-a"
+__repo__ = "https://github.com/wallarug/circuitpython_mpu9250"
+
+try:
+    import struct
+except ImportError:
+    import ustruct as struct
+
+import adafruit_bus_device.i2c_device as i2c_device
+from micropython import const
 
 _GYRO_CONFIG = 0x1b
 _ACCEL_CONFIG = 0x1c
@@ -95,15 +100,8 @@ class MPU6500:
         accel_sf=SF_M_S2, gyro_sf=SF_RAD_S,
         gyro_offset=(0, 0, 0)
     ):
-        if i2c_interface is None:
-            # Use pure python I2C interface if none is specified.
-            import Adafruit_PureIO.smbus
-            self.i2c = Adafruit_PureIO.smbus.SMBus(busnum)
-        else:
-            # Otherwise use the provided class to create an smbus interface.
-            self.i2c = i2c_interface(busnum)
-
-        #self.i2c = i2c
+        iself.i2c = i2c_device.I2CDevice(i2c_interface, address)
+        
         self.address = address
 
         if 0x71 != self.read_whoami():

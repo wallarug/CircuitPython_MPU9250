@@ -25,14 +25,20 @@
 """
 Python I2C driver for AK8963 magnetometer
 """
+from time import sleep
 
-__version__ = "0.1.0-a"
+__version__ = "0.2.0-a"
+__repo__ = "https://github.com/wallarug/circuitpython_mpu9250"
 
-# pylint: disable=import-error
-import struct
-import time
-import Adafruit_GPIO.I2C
-# pylint: enable=import-error
+try:
+    import struct
+except ImportError:
+    import ustruct as struct
+
+import adafruit_bus_device.i2c_device as i2c_device
+from micropython import const
+
+# pylint: disable=bad-whitespace
 
 _WIA = 0x00
 _HXL = 0x03
@@ -68,13 +74,7 @@ class AK8963:
         mode=MODE_CONTINUOUS_MEASURE_2, output=OUTPUT_16_BIT,
         offset=(0, 0, 0), scale=(1, 1, 1)
     ):
-        if i2c_interface is None:
-            # Use pure python I2C interface if none is specified.
-            import Adafruit_PureIO.smbus
-            self.i2c = Adafruit_PureIO.smbus.SMBus(busnum)
-        else:
-            # Otherwise use the provided class to create an smbus interface.
-            self.i2c = i2c_interface(busnum)
+        self.i2c = i2c_device.I2CDevice(i2c_interface, address)
 
         self.address = address
         self._offset = offset
