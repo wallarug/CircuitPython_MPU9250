@@ -94,6 +94,8 @@ SF_RAD_S = 0.017453292519943 # 1 deg/s is 0.017453292519943 rad/s
 
 class MPU6500:
     """Class which provides interface to MPU6500 6-axis motion tracking device."""
+
+    _BUFFER = bytearray(6)
     def __init__(
         self, i2c_interface=None, busnum=1, address=0x68,
         accel_fs=ACCEL_FS_SEL_2G, gyro_fs=GYRO_FS_SEL_250DPS,
@@ -114,7 +116,7 @@ class MPU6500:
         self._gyro_offset = gyro_offset
 
         # Enable I2C bypass to access for MPU9250 magnetometer access.
-        char = self._read_register_char(_INT_PIN_CFG)
+        char = self._read_u8(_INT_PIN_CFG)
         char &= ~_I2C_BYPASS_MASK # clear I2C bits
         char |= _I2C_BYPASS_EN
         self._write_u8(_INT_PIN_CFG, char)
@@ -176,35 +178,8 @@ class MPU6500:
         self._gyro_offset = (ox / n, oy / n, oz / n)
         return self._gyro_offset
 
-    ## New Methods
-    def _read_u8(self, sensor_type, address):
-        device = self.i2c
-        with device as i2c:
-            buf[0] = address & 0xFF
-            i2c.write(buf, end=1, stop=False)
-            i2c.readinto(buf, end=1)
-        return struct.unpack(">h", buf)[0]
-
-    def _read_bytes(self, sensor_type, address, count):
-        device = self.i2c
-        with device as i2c:
-            buf[0] = address & 0xFF
-            i2c.write(buf, end=1, stop=False)
-            i2c.readinto(buf, end=count)
-        if count == 2:
-            return struct.unpack(">h", buf)[0]
-        elif count == 6:
-            return struct.unpack(">hhh", buf)
-
-    def _write_u8(self, sensor_type, address, val):
-        device = self.i2c
-        with device as i2c:
-            buf[0] = address & 0xFF
-            buf[1] = val & 0xFF
-            i2c.write(buf, end=2)
-
     def _accel_fs(self, value):
-        self._write_register_char(_ACCEL_CONFIG, value)
+        self._write_u8(_ACCEL_CONFIG, value)
 
         # Return the sensitivity divider
         if ACCEL_FS_SEL_2G == value:
@@ -217,7 +192,7 @@ class MPU6500:
             return _ACCEL_SO_16G
 
     def _gyro_fs(self, value):
-        self._write_register_char(_GYRO_CONFIG, value)
+        self._write_u8(_GYRO_CONFIG, value)
 
         # Return the sensitivity divider
         if GYRO_FS_SEL_250DPS == value:
@@ -228,6 +203,32 @@ class MPU6500:
             return _GYRO_SO_1000DPS
         elif GYRO_FS_SEL_2000DPS == value:
             return _GYRO_SO_2000DPS
+
+    def _read_u8(self, address):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.readinto(self._BUFFER, end=1)
+        return self._BUFFER[0]
+
+    def _read_bytes(self, address, count):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.readinto(self._BUFFER, end=count)
+        if count == 2:
+            return struct.unpack(">h", self._BUFFER)[0]
+        elif count == 6:
+            return struct.unpack(">hhh", self._BUFFER)
+
+    def _write_u8(self, address, val):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            self._BUFFER[1] = val & 0xFF
+            i2c.write(self._BUFFER, end=2)
 
     def __enter__(self):
         return self
