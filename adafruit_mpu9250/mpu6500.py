@@ -117,7 +117,7 @@ class MPU6500:
         char = self._read_register_char(_INT_PIN_CFG)
         char &= ~_I2C_BYPASS_MASK # clear I2C bits
         char |= _I2C_BYPASS_EN
-        self._write_register_char(_INT_PIN_CFG, char)
+        self._write_u8(_INT_PIN_CFG, char)
 
     def read_acceleration(self):
         """
@@ -129,7 +129,7 @@ class MPU6500:
         so = self._accel_so
         sf = self._accel_sf
 
-        xyz = self._read_register_three_shorts(_ACCEL_XOUT_H)
+        xyz = self._read_bytes(_ACCEL_XOUT_H, 6)
         return tuple([value / so * sf for value in xyz])
 
     def read_gyro(self):
@@ -176,31 +176,28 @@ class MPU6500:
         self._gyro_offset = (ox / n, oy / n, oz / n)
         return self._gyro_offset
 
-    def _read_register_short(self, register):
-        self.i2c.write(register, end=1, stop=False)
-        self.i2c.readinto(buf, end=2)
-        return struct.unpack(">h", buf)[0]
+    ## New Methods
+    def _read_u8(self, sensor_type, address):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.readinto(self._BUFFER, end=1)
+        return self._BUFFER[0]
 
-    def _write_register_short(self, register, value):
-        buf = struct.pack(">hh", address, value)
-        self.i2c.write(buf, end=2)
-        #self.i2c.write_i2c_block_data(self.address, register, buf)
+    def _read_bytes(self, sensor_type, address, count, buf):
+        device = self.i2c
+        with device as i2c:
+            buf[0] = address & 0xFF
+            i2c.write(buf, end=1, stop=False)
+            i2c.readinto(buf, end=count)
 
-    def _read_register_three_shorts(self, register):
-        self.i2c.write(register, end=1, stop=False)
-        self.i2c.readinto(buf, end=6)
-        return struct.unpack(">hhh", buf)
-
-    def _read_register_char(self, register):
-        self.i2c.write(register, end=1, stop=False)
-        self.i2c.readinto(buf, end=2)
-        return buf
-        #return self.i2c.read_byte_data(self.address, register)
-
-    def _write_register_char(self, register, value):
-        buf = struct.pack(">hh", address, value)
-        self.i2c.write(buf, end=2)
-        #self.i2c.write_byte_data(self.address, register, value)
+    def _write_u8(self, sensor_type, address, val):
+        device = self.i2c
+        with device as i2c:
+            self._BUFFER[0] = address & 0xFF
+            self._BUFFER[1] = val & 0xFF
+            i2c.write(self._BUFFER, end=2)
 
     def _accel_fs(self, value):
         self._write_register_char(_ACCEL_CONFIG, value)
@@ -233,3 +230,4 @@ class MPU6500:
 
     def __exit__(self, exception_type, exception_value, traceback):
         pass
+
