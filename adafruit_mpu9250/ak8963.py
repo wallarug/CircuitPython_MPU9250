@@ -140,6 +140,14 @@ class AK8963:
 
         return tuple(xyz)
 
+    @property
+    def magnetic(self):
+        """The magnetometer X, Y, Z axis values as a 3-tuple of
+        micro-Tesla (uT) values.
+        """
+        raw = self.read_magnetic()
+        return 
+
     def read_whoami(self):
         """ Value of the whoami register. """
         return self._read_u8(_WIA)
