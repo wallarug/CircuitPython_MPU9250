@@ -249,7 +249,8 @@ class MPU6500:
         return struct.unpack(">hhh", self._BUFFER)
 
     def _write_u8(self, address, val):
-        device = self.i2c        with device as i2c:
+        device = self.i2c
+        with device as i2c:
             self._BUFFER[0] = address & 0xFF
             self._BUFFER[1] = val & 0xFF
             i2c.write(self._BUFFER, end=2)

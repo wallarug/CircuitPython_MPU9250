@@ -26,8 +26,8 @@ Python I2C driver for MPU9250 9-axis motion tracking device
 """
 
 # pylint: disable=import-error
-from adafruit_mpu9250.mpu6500 import MPU6500
-from adafruit_mpu9250.ak8963 import AK8963
+from robohat_mpu9250.mpu6500 import MPU6500
+from robohat_mpu9250.ak8963 import AK8963
 # pylint: enable=import-error
 
 __version__ = "1.0.1"
