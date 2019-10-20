@@ -14,7 +14,7 @@ from time import sleep
 i2c = busio.I2C(board.SCL, board.SDA)
 
 mpu = MPU6500(i2c, address=0x69)
-ak = AK8963()
+ak = AK8963(i2c)
 
 sensor = MPU9250(mpu, ak)
 
