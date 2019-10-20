@@ -146,7 +146,7 @@ class AK8963:
         micro-Tesla (uT) values.
         """
         raw = self.read_magnetic()
-        return 
+        return raw
 
     def read_whoami(self):
         """ Value of the whoami register. """

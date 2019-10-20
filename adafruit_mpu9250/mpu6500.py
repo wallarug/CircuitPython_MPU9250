@@ -135,6 +135,14 @@ class MPU6500:
         xyz = self._read_bytes(_ACCEL_XOUT_H, 6)
         return tuple([value / so * sf for value in xyz])
 
+    @property
+    def acceleration(self):
+        """The accelerometer X, Y, Z axis values as a 3-tuple of
+        m/s^2 values.
+        """
+        raw = self.read_acceleration()
+        return raw
+
     def read_gyro(self):
         """
         X, Y, Z radians per second as floats.
@@ -152,12 +160,26 @@ class MPU6500:
 
         return tuple(xyz)
 
+    @property
+    def gyro(self):
+        """The gyroscope X, Y, Z axis values as a 3-tuple of
+        degrees/second values.
+        """
+        raw = self.read_gyro()
+        return raw
+
     def read_temperature(self):
         """
         Die temperature in celsius as a float.
         """
         temp = self._read_bytes(_TEMP_OUT_H, 2)
         return ((temp - _TEMP_OFFSET) / _TEMP_SO) + _TEMP_OFFSET
+
+    @property
+    def temperature(self):
+        """The temperature of the sensor in degrees Celsius."""
+        raw = read_temperature()
+        return raw
 
     def read_whoami(self):
         """ Value of the whoami register. """
