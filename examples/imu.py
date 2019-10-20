@@ -1,11 +1,13 @@
 """
-Sample IMU Access
+Example IMU Control
+Robo HAT MM1
+https://github.com/wallarug/circuitpython_mpu9250
 """
 import board
 import busio
-from adafruit_mpu9250.mpu9250 import MPU9250
-from adafruit_mpu9250.mpu6500 import MPU6500
-from adafruit_mpu9250.ak8963 import AK8963
+from robohat_mpu9250.mpu9250 import MPU9250
+from robohat_mpu9250.mpu6500 import MPU6500
+from robohat_mpu9250.ak8963 import AK8963
 
 from time import sleep
 
