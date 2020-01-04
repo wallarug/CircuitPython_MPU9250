@@ -1,32 +1,65 @@
-import sys
-sys.path.pop(0)
-from setuptools import setup
+"""A setuptools based setup module.
+
+See:
+https://packaging.python.org/en/latest/distributing.html
+https://github.com/pypa/sampleproject
+"""
+
+from setuptools import setup, find_packages
+# To use a consistent encoding
 from codecs import open
 from os import path
 
-cwd = path.abspath(path.dirname(__file__))
+here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(cwd, "README.md"), encoding="utf-8") as f:
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name="python_mpu9250",
-    py_modules=["mpu9250", "mpu6500", "ak8963"],
-    version="0.1.0",
-    description="CircuitPython I2C driver for MPU9250 9-axis motion tracking device",
+    name='adafruit-circuitpython-mpu9250',
+
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
+
+    description='CircuitPython helper library for MPU9250 9-axis IMU',
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    keywords="accelerometer, gyro, magnetometer, python, i2c",
-    url="https://github.com/wallarug/circuitpython_mpu9250.git",
-    author="Mika Tuupola",
-    author_email="tuupola@appelsiini.net",
-    maintainer="Cian Byrne",
-    maintainer_email="cian@roboticsmasters.co",
-    license="MIT",
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Programming Language :: CircuitPython :: Implementation :: CPython",
-        "License :: OSI Approved :: MIT License",
+    long_description_content_type='text/x-rst',
+
+    # The project's main homepage.
+    url='https://github.com/adafruit/Adafruit_CircuitPython_MPU9250',
+
+    # Author details
+    author='Adafruit Industries',
+    author_email='circuitpython@adafruit.com',
+
+    install_requires=[
+        'Adafruit-Blinka',
+        'adafruit-circuitpython-busdevice',
+        'adafruit-circuitpython-register'
     ],
+
+    # Choose your license
+    license='MIT',
+
+    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: System :: Hardware',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+    ],
+
+    # What does your project relate to?
+    keywords='adafruit blinka circuitpython micropython mpu9250 imu movement',
+
+    # You can just specify the packages manually here if your project is
+    # simple. Or you can use find_packages().
+    # TODO: IF LIBRARY FILES ARE A PACKAGE FOLDER,
+    #       CHANGE `py_modules=['...']` TO `packages=['...']`
+    py_modules=['roboticsmasters_mpu9250'],
 )
