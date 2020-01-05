@@ -53,6 +53,11 @@ from adafruit_register.i2c_struct_array import StructArray
 from adafruit_register.i2c_bit import RWBit
 from adafruit_register.i2c_bits import RWBits
 import adafruit_bus_device.i2c_device as i2c_device
+
+try:
+    import struct
+except ImportError:
+    import ustruct as struct
 from micropython import const
 
 __version__ = "0.0.0-auto.0"
