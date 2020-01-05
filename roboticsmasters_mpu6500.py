@@ -137,7 +137,7 @@ class Rate: # pylint: disable=too-few-public-methods
     CYCLE_20_HZ = 2   # 20 Hz
     CYCLE_40_HZ = 3   # 40 Hz
 
-class MPU6050:
+class MPU6500:
     """Driver for the MPU6050 6-DoF accelerometer and gyroscope.
         :param ~busio.I2C i2c_bus: The I2C bus the MPU6050 is connected to.
         :param address: The I2C slave address of the sensor
