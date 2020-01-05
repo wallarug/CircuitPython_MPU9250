@@ -241,7 +241,7 @@ class MPU6500:
         if gyro_range == GyroRange.RANGE_250_DPS:
             gyro_scale = 131
         if gyro_range == GyroRange.RANGE_500_DPS:
-            gyro_scale = 65.5
+            gyro_scale = 62.5
         if gyro_range == GyroRange.RANGE_1000_DPS:
             gyro_scale = 32.8
         if gyro_range == GyroRange.RANGE_2000_DPS:
