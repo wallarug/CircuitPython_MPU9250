@@ -199,7 +199,9 @@ class MPU6500:
     def temperature(self):
         """The current temperature in  º C"""
         raw_temperature = self._raw_temp_data
-        temp = (raw_temperature + 12412.0) / 340.0
+        #temp = (raw_temperature + 12412.0) / 340.0
+        #temp = (raw_temperature / 340.0) + 36.53
+        temp = (raw_temperature / 333.87) + 21.0
         return temp
 
     @property
