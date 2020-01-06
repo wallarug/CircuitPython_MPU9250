@@ -105,4 +105,103 @@ class AK8963:
 
     _fuse_rom = RWBits(2, _AK8963_CNTL1, 3)
     _power_down = RWBits(2, _AK8963_CNTL1, 3)
+
+
+    def read_magnetic(self):
+        """
+        X, Y, Z axis micro-Tesla (uT) as floats.
+        """
+        xyz = list(self._read_bytes(_HXL, 6))
+        self._read_u8(_ST2) # Enable updating readings again
+
+        # Apply factory axial sensitivy adjustments
+        xyz[0] *= self._adjustment[0]
+        xyz[1] *= self._adjustment[1]
+        xyz[2] *= self._adjustment[2]
+
+        # Apply output scale determined in constructor
+        so = self._so
+        xyz[0] *= so
+        xyz[1] *= so
+        xyz[2] *= so
+
+        # Apply hard iron ie. offset bias from calibration
+        xyz[0] -= self._offset[0]
+        xyz[1] -= self._offset[1]
+        xyz[2] -= self._offset[2]
+
+        # Apply soft iron ie. scale bias from calibration
+        xyz[0] *= self._scale[0]
+        xyz[1] *= self._scale[1]
+        xyz[2] *= self._scale[2]
+
+        return tuple(xyz)
+
+    @property
+    def magnetic(self):
+        """The magnetometer X, Y, Z axis values as a 3-tuple of
+        micro-Tesla (uT) values.
+        """
+        raw = self.read_magnetic()
+        return raw
+
+    def read_whoami(self):
+        """ Value of the whoami register. """
+        return self._read_u8(_WIA)
+
+    def calibrate(self, count=256, delay=0.200):
+        """
+        Calibrate the magnetometer.
+
+        The magnetometer needs to be turned in alll possible directions
+        during the callibration process. Ideally each axis would once 
+        line up with the magnetic field.
+
+        count: int
+            Number of magnetometer readings that are taken for the calibration.
+        
+        delay: float
+            Delay between the magntometer readings in seconds.
+        """
+        self._offset = (0, 0, 0)
+        self._scale = (1, 1, 1)
+
+        reading = self.read_magnetic()
+        minx = maxx = reading[0]
+        miny = maxy = reading[1]
+        minz = maxz = reading[2]
+
+        while count:
+            time.sleep(delay)
+            reading = self.read_magnetic()
+            minx = min(minx, reading[0])
+            maxx = max(maxx, reading[0])
+            miny = min(miny, reading[1])
+            maxy = max(maxy, reading[1])
+            minz = min(minz, reading[2])
+            maxz = max(maxz, reading[2])
+            count -= 1
+
+        # Hard iron correction
+        offset_x = (maxx + minx) / 2
+        offset_y = (maxy + miny) / 2
+        offset_z = (maxz + minz) / 2
+
+        self._offset = (offset_x, offset_y, offset_z)
+
+        # Soft iron correction
+        avg_delta_x = (maxx - minx) / 2
+        avg_delta_y = (maxy - miny) / 2
+        avg_delta_z = (maxz - minz) / 2
+
+        avg_delta = (avg_delta_x + avg_delta_y + avg_delta_z) / 3
+
+        scale_x = avg_delta / avg_delta_x
+        scale_y = avg_delta / avg_delta_y
+        scale_z = avg_delta / avg_delta_z
+
+        self._scale = (scale_x, scale_y, scale_z)
+
+        return self._offset, self._scale
+    
     
