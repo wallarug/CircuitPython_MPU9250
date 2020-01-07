@@ -64,13 +64,13 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
 
 # pylint: disable=bad-whitespace
-_AK8963_DEFAULT_ADDRESS    = 0x69 # AK8963 default i2c address
+_AK8963_DEFAULT_ADDRESS    = 0x0c # AK8963 default i2c address
 _AK8963_DEVICE_ID          = 0x48 # MPU9250 WHO_AM_I value
 
 _AK8963_WIA                = 0x00 # Device ID register
 _AK8963_INFO               = 0x01 # Device Information register
 _AK8963_ST1                = 0x02 # Status register 1
-_AK8963_MAG_OUT            = 0x08 # base address for sensor data reads
+_AK8963_MAG_OUT            = 0x03 # base address for sensor data reads
 _AK8963_HXL                = 0x03 # 
 _AK8963_HXH                = 0x04
 _AK8963_HYL                = 0x05
