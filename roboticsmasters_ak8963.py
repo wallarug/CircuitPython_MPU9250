@@ -79,6 +79,7 @@ _AK8963_HZL                = 0x07
 _AK8963_HZH                = 0x08
 _AK8963_ST2                = 0x09
 _AK8963_CNTL1              = 0x0A
+_AK8963_ADJUST             = 0x10 # base address for sensor adjust reads
 _AK8963_ASAX               = 0x10
 _AK8963_ASAY               = 0x11
 _AK8963_ASAZ               = 0x12
@@ -93,26 +94,34 @@ class AK8963:
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
 
         if self._device_id != _AK8963_DEVICE_ID:
-            raise RuntimeError("Failed to find MPU6500 - check your wiring!")
+            raise RuntimeError("Failed to find AKM8963 - check your wiring!")
 
         self.reset()
+
+        self._adjustment = 
 
 
 
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
 
     _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<h", 3)
+    _raw_adjustment_data = StructArray(_AK8963_ASAX, ">H", 3)
 
     _fuse_rom = RWBits(2, _AK8963_CNTL1, 3)
     _power_down = RWBits(2, _AK8963_CNTL1, 3)
 
 
-    def read_magnetic(self):
+    @property
+    def magnetic(self):
+        """The magnetometer X, Y, Z axis values as a 3-tuple of
+        micro-Tesla (uT) values.
+        """
+        xyz = self._raw_magnet_data
+
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
         """
-        xyz = list(self._read_bytes(_HXL, 6))
-        self._read_u8(_ST2) # Enable updating readings again
+        self._read_u8(_AK8963_ST2) # Enable updating readings again
 
         # Apply factory axial sensitivy adjustments
         xyz[0] *= self._adjustment[0]
@@ -136,14 +145,8 @@ class AK8963:
         xyz[2] *= self._scale[2]
 
         return tuple(xyz)
-
-    @property
-    def magnetic(self):
-        """The magnetometer X, Y, Z axis values as a 3-tuple of
-        micro-Tesla (uT) values.
-        """
-        raw = self.read_magnetic()
         return raw
+
 
     def read_whoami(self):
         """ Value of the whoami register. """
