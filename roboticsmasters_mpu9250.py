@@ -47,8 +47,61 @@ Implementation Notes
 # * Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
 """
 
-# imports
+from time import sleep
+import adafruit_bus_device.i2c_device as i2c_device
+from roboticsmasters_mpu6500 import MPU6500
+from roboticsmasters_ak8963 import AK8963
+
+try:
+    import struct
+except ImportError:
+    import ustruct as struct
+from micropython import const
+
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
+
+# pylint: disable=bad-whitespace
+_MPU6500_DEFAULT_ADDRESS    = 0x69 # MPU6500 default i2c address
+_AK8963_DEFAULT_ADDRESS     = 0x69 # AK8963 default i2c address
+
+# pylint: enable=bad-whitespace
+
+class MPU9250:
+    """Driver for the MPU9250 9-DoF IMU.
+        :param ~busio.I2C i2c_bus: The I2C bus the MPU9250 is connected to.
+        :param address: The I2C slave address of the sensor
+    """
+
+    def __init__(self, i2c_bus,
+                 mpu_addr=_MPU6500_DEFAULT_ADDRESS,
+                 akm_addr=_AK8963_DEFAULT_ADDRESS):
+
+        self._mpu = MPU6500(i2c_bus, mpu_addr)
+        self._akm = AK8963(i2c_bus, mpu_addr)
+
+    def temperature(self):
+        """The current temperature in  º C"""
+        return self._mpu.temperature()
+
+    def acceleration(self):
+        """Acceleration X, Y, and Z axis data in m/s^2"""
+        return self._mpu.acceleration()
+
+    def gyro(self):
+        """Gyroscope X, Y, and Z axis data in º/s"""
+        return self._mpu.gyro()
+
+    def magnetic(self):
+        return self._akm.magnetic()
+
+    
+
+    
+    
+        
+
+
+
 

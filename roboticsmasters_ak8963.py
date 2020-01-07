@@ -105,10 +105,11 @@ class AK8963:
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
 
     _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<h", 3)
-    _raw_adjustment_data = StructArray(_AK8963_ASAX, ">H", 3)
+    _raw_adjustment_data = StructArray(_AK8963_ASAX, ">B", 3)
 
     _fuse_rom = RWBits(2, _AK8963_CNTL1, 3)
     _power_down = RWBits(2, _AK8963_CNTL1, 3)
+    _status = ROUnaryStruct(_AK8963_ST2, ">B")
 
 
     @property
