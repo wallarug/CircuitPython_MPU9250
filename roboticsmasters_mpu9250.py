@@ -64,7 +64,7 @@ __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
 
 # pylint: disable=bad-whitespace
 _MPU6500_DEFAULT_ADDRESS    = 0x69 # MPU6500 default i2c address
-_AK8963_DEFAULT_ADDRESS     = 0x69 # AK8963 default i2c address
+_AK8963_DEFAULT_ADDRESS     = 0x0c # AK8963 default i2c address
 
 # pylint: enable=bad-whitespace
 
@@ -79,20 +79,25 @@ class MPU9250:
                  akm_addr=_AK8963_DEFAULT_ADDRESS):
 
         self._mpu = MPU6500(i2c_bus, mpu_addr)
-        self._akm = AK8963(i2c_bus, mpu_addr)
+        self._mpu.start_i2c()
+        self._akm = AK8963(i2c_bus, akm_addr)
 
+    @property
     def temperature(self):
         """The current temperature in  º C"""
         return self._mpu.temperature()
 
+    @property
     def acceleration(self):
         """Acceleration X, Y, and Z axis data in m/s^2"""
         return self._mpu.acceleration()
 
+    @property
     def gyro(self):
         """Gyroscope X, Y, and Z axis data in º/s"""
         return self._mpu.gyro()
 
+    @property
     def magnetic(self):
         return self._akm.magnetic()
 
