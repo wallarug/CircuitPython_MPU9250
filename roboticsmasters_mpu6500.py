@@ -83,7 +83,7 @@ _MPU6500_SIG_PATH_RESET   = 0x68 # register to reset sensor signal paths
 _MPU6500_USER_CTRL        = 0x6A # FIFO and I2C Master control register
 _MPU6500_PWR_MGMT_1       = 0x6B # Primary power/sleep control register
 _MPU6500_PWR_MGMT_2       = 0x6C # Secondary power/sleep control register
-_MPU6500_WHO_AM_I         = 0x75 # Divice ID register
+_MPU6500_WHO_AM_I         = 0x75 # Device ID register
 
 STANDARD_GRAVITY = 9.80665
 # pylint: enable=bad-whitespace

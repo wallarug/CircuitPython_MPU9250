@@ -50,6 +50,7 @@ Implementation Notes
 from time import sleep
 import adafruit_bus_device.i2c_device as i2c_device
 from adafruit_register.i2c_bit import RWBit
+from adafruit_register.i2c_struct import ROUnaryStruct
 
 from roboticsmasters_mpu6500 import MPU6500
 from roboticsmasters_ak8963 import AK8963
@@ -66,15 +67,18 @@ __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
 
 # pylint: disable=bad-whitespace
 _MPU9250_DEFAULT_ADDRESS    = 0x69 # MPU9250 default i2c address
+_MPU9250_DEVICE_ID          = 0x71 # MPU9250 WHO_AM_I value
+
 _MPU6500_DEFAULT_ADDRESS    = 0x69 # MPU6500 default i2c address
 _AK8963_DEFAULT_ADDRESS     = 0x0c # AK8963 default i2c address
+
 
 _MPU9250_INT_PIN_CFG        = 0x37 # I2C Bypass enable configuration
 _MPU9250_INT_ENABLE         = 0x38 # Interrupt Enable
 _MPU9250_INT_STATUS         = 0x3A # Interrupt Status
 
 _MPU9250_I2C_MST_CTRL       = 0x24 #
-
+_MPU9250_WHO_AM_I           = 0x75 # Device ID register
 
 # pylint: enable=bad-whitespace
 
@@ -87,16 +91,16 @@ class MPU9250:
     def __init__(self, i2c_bus,
                  mpu_addr=_MPU6500_DEFAULT_ADDRESS,
                  akm_addr=_AK8963_DEFAULT_ADDRESS):
-        self._i2c_device(i2c_bus, _MPU9250_DEFAULT_ADDRESS)
+        self.i2c_device = i2c_device.I2CDevice(i2c_bus, mpu_addr)
 
-        if self._device_id != _MPU6500_DEVICE_ID:
+        if self._device_id != _MPU9250_DEVICE_ID:
             raise RuntimeError("Failed to find MPU9250 - check your wiring!")
 
-        
         self._mpu = MPU6500(i2c_bus, mpu_addr)
 
         self._bypass = 1
         self._ready = 1
+        sleep(0.100)
         
         self._akm = None#AK8963(i2c_bus, akm_addr)
 
@@ -105,7 +109,7 @@ class MPU9250:
         self._mpu.reset()
         self._akm.reset()
 
-    _device_id = ROUnaryStruct(_MPU6500_WHO_AM_I, ">B")
+    _device_id = ROUnaryStruct(_MPU9250_WHO_AM_I, ">B")
     _bypass = RWBit(_MPU9250_INT_PIN_CFG, 1, 1)
     _ready = RWBit(_MPU9250_INT_ENABLE, 0, 1)
 
