@@ -49,6 +49,8 @@ Implementation Notes
 
 from time import sleep
 import adafruit_bus_device.i2c_device as i2c_device
+from adafruit_register.i2c_bit import RWBit
+
 from roboticsmasters_mpu6500 import MPU6500
 from roboticsmasters_ak8963 import AK8963
 
@@ -85,7 +87,12 @@ class MPU9250:
     def __init__(self, i2c_bus,
                  mpu_addr=_MPU6500_DEFAULT_ADDRESS,
                  akm_addr=_AK8963_DEFAULT_ADDRESS):
+        self._i2c_device(i2c_bus, _MPU9250_DEFAULT_ADDRESS)
 
+        if self._device_id != _MPU6500_DEVICE_ID:
+            raise RuntimeError("Failed to find MPU9250 - check your wiring!")
+
+        
         self._mpu = MPU6500(i2c_bus, mpu_addr)
 
         self._bypass = 1
@@ -98,6 +105,7 @@ class MPU9250:
         self._mpu.reset()
         self._akm.reset()
 
+    _device_id = ROUnaryStruct(_MPU6500_WHO_AM_I, ">B")
     _bypass = RWBit(_MPU9250_INT_PIN_CFG, 1, 1)
     _ready = RWBit(_MPU9250_INT_ENABLE, 0, 1)
 
