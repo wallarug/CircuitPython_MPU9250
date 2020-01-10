@@ -102,7 +102,7 @@ class MPU9250:
         self._ready = 1
         sleep(0.100)
         
-        self._akm = None#AK8963(i2c_bus, akm_addr)
+        self._akm = AK8963(i2c_bus, akm_addr)
 
     def reset(self):
         """Reinitialize the sensor"""

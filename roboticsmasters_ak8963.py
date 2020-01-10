@@ -134,7 +134,7 @@ class AK8963:
         self._adjustment = self._raw_adjustment_data
         _mode = Mode.POWERDOWN
 
-        time.sleep(100e-6)
+        sleep(100e-6)
 
         self._offset = (0,0,0)
         self._scale = (1,1,1)
@@ -240,7 +240,7 @@ class AK8963:
         minz = maxz = reading[2]
 
         while count:
-            time.sleep(delay)
+            sleep(delay)
             reading = self.read_magnetic()
             minx = min(minx, reading[0])
             maxx = max(maxx, reading[0])
