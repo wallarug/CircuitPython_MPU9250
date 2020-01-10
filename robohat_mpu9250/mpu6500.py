@@ -99,8 +99,8 @@ class MPU6500:
     _BUFFER = bytearray(6)
     def __init__(
         self, i2c_interface=None, busnum=1, address=0x68,
-        accel_fs=ACCEL_FS_SEL_2G, gyro_fs=GYRO_FS_SEL_250DPS,
-        accel_sf=SF_M_S2, gyro_sf=SF_RAD_S,
+        accel_fs=ACCEL_FS_SEL_2G, gyro_fs=GYRO_FS_SEL_500DPS,
+        accel_sf=SF_M_S2, gyro_sf=_GYRO_SO_500DPS,
         gyro_offset=(0, 0, 0)
     ):
         self.i2c = i2c_device.I2CDevice(i2c_interface, address)
@@ -148,17 +148,16 @@ class MPU6500:
         X, Y, Z radians per second as floats.
         """
         so = self._gyro_so
-        sf = self._gyro_sf
         ox, oy, oz = self._gyro_offset
+        gyro_scale = self._gyro_sf
 
-        xyz = self._read_bytes(_GYRO_XOUT_H, 6)
-        xyz = [value / so * sf for value in xyz]
+        raw = self._read_bytes(_GYRO_XOUT_H, 6)
 
-        xyz[0] -= ox
-        xyz[1] -= oy
-        xyz[2] -= oz
-
-        return tuple(xyz)
+        gyro_x = (raw[0] / gyro_scale) - ox
+        gyro_y = (raw[1] / gyro_scale) - oy
+        gyro_z = (raw[2] / gyro_scale) - oz
+        
+        return (gyro_x, gyro_y, gyro_z)
 
     @property
     def gyro(self):
