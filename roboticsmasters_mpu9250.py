@@ -63,8 +63,16 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
 
 # pylint: disable=bad-whitespace
+_MPU9250_DEFAULT_ADDRESS    = 0x69 # MPU9250 default i2c address
 _MPU6500_DEFAULT_ADDRESS    = 0x69 # MPU6500 default i2c address
 _AK8963_DEFAULT_ADDRESS     = 0x0c # AK8963 default i2c address
+
+_MPU9250_INT_PIN_CFG        = 0x37 # I2C Bypass enable configuration
+_MPU9250_INT_ENABLE         = 0x38 # Interrupt Enable
+_MPU9250_INT_STATUS         = 0x3A # Interrupt Status
+
+_MPU9250_I2C_MST_CTRL       = 0x24 #
+
 
 # pylint: enable=bad-whitespace
 
@@ -79,8 +87,24 @@ class MPU9250:
                  akm_addr=_AK8963_DEFAULT_ADDRESS):
 
         self._mpu = MPU6500(i2c_bus, mpu_addr)
-        self._mpu.start_i2c()
-        self._akm = AK8963(i2c_bus, akm_addr)
+
+        self._bypass = 1
+        self._ready = 1
+        
+        self._akm = None#AK8963(i2c_bus, akm_addr)
+
+    def reset(self):
+        """Reinitialize the sensor"""
+        self._mpu.reset()
+        self._akm.reset()
+
+    _bypass = RWBit(_MPU9250_INT_PIN_CFG, 1, 1)
+    _ready = RWBit(_MPU9250_INT_ENABLE, 0, 1)
+    
+
+    def i2c_bypass(self, address=_AK8963_DEFAULT_ADDRESS):
+        
+        
 
     @property
     def temperature(self):
