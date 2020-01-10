@@ -85,6 +85,38 @@ _AK8963_ASAY               = 0x11
 _AK8963_ASAZ               = 0x12
 
 
+class Range:
+    """Allowed values for `range`.
+
+    - ``Rate.CYCLE_1_25_HZ``
+    - ``Rate.CYCLE_5_HZ``
+    - ``Rate.CYCLE_20_HZ``
+    - ``Rate.CYCLE_40_HZ``
+    """
+    14BIT = 0
+    16BIT = 1
+
+class Mode:
+    """Allowed values for `mode` setting
+
+    - ``Mode.MODE_POWERDOWN``
+    - ``Mode.MODE_SINGLE``
+    - ``Mode.MODE_CONT1``
+    - ``Mode.MODE_CONT2``
+    - ``Mode.MODE_EXT_TRIG``
+    - ``Mode.MODE_SELFTEST``
+    - ``Mode.MODE_FUSE``
+
+    """
+    POWERDOWN = 0
+    MEASURE_SINGLE = 1
+    MEASURE_CONT1 = 2
+    EXT_TRIG = 4
+    MEASURE_CONT2 =  6
+    SELFTEST = 8
+    FUSE = 16
+    
+
 class AK8963:
     """Driver for the AK8963 magnetometer.
         :param ~busio.I2C i2c_bus: The I2C bus the AK8963 is connected to.
@@ -98,17 +130,46 @@ class AK8963:
 
         self.reset()
 
-        self._adjustment = 
+        self._offset = (0,0,0)
+        self._scale = (1,1,1)
 
+        _fuse = 0b1111 #fuse rom
+        self._adjustment = self._raw_adjustment_data
+        _fuse = 0b0000
+
+        time.sleep(100e-6)
+
+        self._adjustment = (
+            (0.5 * (asax - 128)) / 128 + 1,
+            (0.5 * (asay - 128)) / 128 + 1,
+            (0.5 * (asaz - 128)) / 128 + 1
+        )
+
+        _mag_range = Range.16BIT
+        
+
+        
+    def reset(self):
+        """Reinitialize the sensor"""
+        self._reset = True
+        while self._reset is True:
+            sleep(0.001)
+        sleep(0.100)
+
+        
+        
 
 
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
 
-    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<h", 3)
-    _raw_adjustment_data = StructArray(_AK8963_ASAX, ">B", 3)
+    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, ">h", 3, lsb_first=False)
+    _raw_adjustment_data = StructArray(_AK8963_ADJUST, "h", 3)
 
-    _fuse_rom = RWBits(2, _AK8963_CNTL1, 3)
+    _fuse = RWBits(4, _AK8963_CNTL1, 0)
     _power_down = RWBits(2, _AK8963_CNTL1, 3)
+
+    _mag_range = RWBit(_AK8963_CNTL1, 4, 1)
+        
     _status = ROUnaryStruct(_AK8963_ST2, ">B")
 
 
@@ -117,41 +178,45 @@ class AK8963:
         """The magnetometer X, Y, Z axis values as a 3-tuple of
         micro-Tesla (uT) values.
         """
-        xyz = self._raw_magnet_data
+        raw_data = self._raw_magnet_data
+        raw_x = raw_data[0][0]
+        raw_y = raw_data[1][0]
+        raw_z = raw_data[2][0]
 
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
         """
-        self._read_u8(_AK8963_ST2) # Enable updating readings again
+        self._status # Enable updating readings again
 
         # Apply factory axial sensitivy adjustments
-        xyz[0] *= self._adjustment[0]
-        xyz[1] *= self._adjustment[1]
-        xyz[2] *= self._adjustment[2]
+        raw_x *= self._adjustment[0]
+        raw_y *= self._adjustment[1]
+        raw_z *= self._adjustment[2]
 
         # Apply output scale determined in constructor
-        so = self._so
-        xyz[0] *= so
-        xyz[1] *= so
-        xyz[2] *= so
+        mag_range = self._mag_range
+        mag_scale = 1
+        if mag_range == Range.16BIT:
+            mag_scale = 0.15
+        if mag_range == Range.14BIT:
+            mag_scale = 0.6
+        
+        raw_x *= mag_scale
+        raw_y *= mag_scale
+        raw_z *= mag_scale
 
         # Apply hard iron ie. offset bias from calibration
-        xyz[0] -= self._offset[0]
-        xyz[1] -= self._offset[1]
-        xyz[2] -= self._offset[2]
+        raw_x -= self._offset[0]
+        raw_y -= self._offset[1]
+        raw_z -= self._offset[2]
 
         # Apply soft iron ie. scale bias from calibration
-        xyz[0] *= self._scale[0]
-        xyz[1] *= self._scale[1]
-        xyz[2] *= self._scale[2]
+        raw_x *= self._scale[0]
+        raw_y *= self._scale[1]
+        raw_z *= self._scale[2]
 
-        return tuple(xyz)
-        return raw
+        return (raw_x, raw_y, raw_z)
 
-
-    def read_whoami(self):
-        """ Value of the whoami register. """
-        return self._read_u8(_WIA)
 
     def calibrate(self, count=256, delay=0.200):
         """
