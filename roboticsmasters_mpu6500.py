@@ -65,7 +65,7 @@ __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
 
 # pylint: disable=bad-whitespace
 _MPU6500_DEFAULT_ADDRESS    = 0x69 # MPU6500 default i2c address
-_MPU6500_DEVICE_ID          = 0x75 # MPU9250 WHO_AM_I value
+_MPU6500_DEVICE_ID          = 0x71 # MPU9250 WHO_AM_I value
 
 _MPU6500_SELF_TEST_X      = 0x0D # Self test factory calibrated values register
 _MPU6500_SELF_TEST_Y      = 0x0E # Self test factory calibrated values register
