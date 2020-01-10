@@ -130,32 +130,35 @@ class AK8963:
 
         self.reset()
 
-        self._offset = (0,0,0)
-        self._scale = (1,1,1)
-
-        _mode = Mode.FUSE #fuse rom
+        _mode = Mode.FUSE
         self._adjustment = self._raw_adjustment_data
         _mode = Mode.POWERDOWN
 
         time.sleep(100e-6)
 
+        self._offset = (0,0,0)
+        self._scale = (1,1,1)
         self._adjustment = (
-            (0.5 * (asax - 128)) / 128 + 1,
-            (0.5 * (asay - 128)) / 128 + 1,
-            (0.5 * (asaz - 128)) / 128 + 1
+            ((0.5 * (asax - 128)) / 128) + 1,
+            ((0.5 * (asay - 128)) / 128) + 1,
+            ((0.5 * (asaz - 128)) / 128) + 1
         )
 
-        _mag_range = Sensitivity.SENSE_16BIT
-        _mode = Mode.MEASURE_8HZ
+        self.start()
         
-
-        
+  
     def reset(self):
         """Reinitialize the sensor"""
         self._reset = True
         while self._reset is True:
             sleep(0.001)
         sleep(0.100)
+
+    def start(self):
+        """Start Up and Initalise the sensor"""
+        _mag_range = Sensitivity.SENSE_16BIT
+        _mode = Mode.MEASURE_8HZ
+    
 
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
     _reset = RWBit(_AK8963_ST2, 0, 1)
