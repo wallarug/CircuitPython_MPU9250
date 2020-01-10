@@ -195,9 +195,9 @@ class AK8963:
         # Apply output scale determined in constructor
         mag_range = self._mag_range
         mag_scale = 1
-        if mag_range == Range.16BIT:
+        if mag_range == Sensitivity.SENSE_16BIT:
             mag_scale = 0.15
-        if mag_range == Range.14BIT:
+        if mag_range == Sensitivity.SENSE_14BIT:
             mag_scale = 0.6
         
         raw_x *= mag_scale

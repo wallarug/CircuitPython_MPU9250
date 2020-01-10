@@ -100,11 +100,6 @@ class MPU9250:
 
     _bypass = RWBit(_MPU9250_INT_PIN_CFG, 1, 1)
     _ready = RWBit(_MPU9250_INT_ENABLE, 0, 1)
-    
-
-    def i2c_bypass(self, address=_AK8963_DEFAULT_ADDRESS):
-        
-        
 
     @property
     def temperature(self):
