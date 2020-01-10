@@ -131,10 +131,13 @@ class AK8963:
         self.reset()
 
         _mode = Mode.FUSE
-        self._adjustment = self._raw_adjustment_data
+        raw_adjustment = self._raw_adjustment_data
         _mode = Mode.POWERDOWN
-
         sleep(100e-6)
+
+        asax = raw_adjustment[0][0]
+        asay = raw_adjustment[1][0]
+        asaz = raw_adjustment[2][0]
 
         self._offset = (0,0,0)
         self._scale = (1,1,1)
