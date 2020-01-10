@@ -85,7 +85,7 @@ _AK8963_ASAY               = 0x11
 _AK8963_ASAZ               = 0x12
 
 
-class Range:
+class Sensitivity:
     """Allowed values for `range`.
 
     - ``Rate.CYCLE_1_25_HZ``
@@ -93,8 +93,8 @@ class Range:
     - ``Rate.CYCLE_20_HZ``
     - ``Rate.CYCLE_40_HZ``
     """
-    14BIT = 0
-    16BIT = 1
+    SENSE_14BIT = 0
+    SENSE_16BIT = 1
 
 class Mode:
     """Allowed values for `mode` setting
@@ -108,13 +108,13 @@ class Mode:
     - ``Mode.MODE_FUSE``
 
     """
-    POWERDOWN = 0
-    MEASURE_SINGLE = 1
-    MEASURE_CONT1 = 2
-    EXT_TRIG = 4
-    MEASURE_CONT2 =  6
-    SELFTEST = 8
-    FUSE = 16
+    POWERDOWN = 0b0000
+    MEASURE_SINGLE = 0b0001
+    MEASURE_8HZ = 0b0010 # 8 Hz
+    EXT_TRIG = 0b0100
+    MEASURE_100HZ =  0b0110 # 100 Hz
+    SELFTEST = 0b1000
+    FUSE = 0b1111
     
 
 class AK8963:
@@ -133,9 +133,9 @@ class AK8963:
         self._offset = (0,0,0)
         self._scale = (1,1,1)
 
-        _fuse = 0b1111 #fuse rom
+        _mode = Mode.FUSE #fuse rom
         self._adjustment = self._raw_adjustment_data
-        _fuse = 0b0000
+        _mode = Mode.POWERDOWN
 
         time.sleep(100e-6)
 
@@ -145,7 +145,8 @@ class AK8963:
             (0.5 * (asaz - 128)) / 128 + 1
         )
 
-        _mag_range = Range.16BIT
+        _mag_range = Sensitivity.SENSE_16BIT
+        _mode = Mode.MEASURE_8HZ
         
 
         
@@ -156,20 +157,15 @@ class AK8963:
             sleep(0.001)
         sleep(0.100)
 
-        
-        
-
-
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
+    _reset = RWBit(_AK8963_ST2, 0, 1)
 
-    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, ">h", 3, lsb_first=False)
-    _raw_adjustment_data = StructArray(_AK8963_ADJUST, "h", 3)
+    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<h", 3)
+    _raw_adjustment_data = StructArray(_AK8963_ADJUST, ">b", 3)
 
-    _fuse = RWBits(4, _AK8963_CNTL1, 0)
-    _power_down = RWBits(2, _AK8963_CNTL1, 3)
-
+    _mode = RWBits(4, _AK8963_CNTL1, 0)
     _mag_range = RWBit(_AK8963_CNTL1, 4, 1)
-        
+    
     _status = ROUnaryStruct(_AK8963_ST2, ">B")
 
 
@@ -235,7 +231,7 @@ class AK8963:
         self._offset = (0, 0, 0)
         self._scale = (1, 1, 1)
 
-        reading = self.read_magnetic()
+        reading = self.magnetic
         minx = maxx = reading[0]
         miny = maxy = reading[1]
         minz = maxz = reading[2]
@@ -270,7 +266,5 @@ class AK8963:
         scale_z = avg_delta / avg_delta_z
 
         self._scale = (scale_x, scale_y, scale_z)
-
-        return self._offset, self._scale
     
     
