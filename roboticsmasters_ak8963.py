@@ -78,7 +78,8 @@ _AK8963_HYH                = 0x06
 _AK8963_HZL                = 0x07
 _AK8963_HZH                = 0x08
 _AK8963_ST2                = 0x09
-_AK8963_CNTL1              = 0x0A
+_AK8963_CNTL1              = 0x0A # control register 1
+_AK8963_CNTL2              = 0x0B # control register 2
 _AK8963_ADJUST             = 0x10 # base address for sensor adjust reads
 _AK8963_ASAX               = 0x10
 _AK8963_ASAY               = 0x11
@@ -108,13 +109,13 @@ class Mode:
     - ``Mode.MODE_FUSE``
 
     """
-    POWERDOWN = 0b0000
-    MEASURE_SINGLE = 0b0001
-    MEASURE_8HZ = 0b0010 # 8 Hz
-    EXT_TRIG = 0b0100
-    MEASURE_100HZ =  0b0110 # 100 Hz
-    SELFTEST = 0b1000
-    FUSE = 0b1111
+    POWERDOWN = 0 #0b0000
+    MEASURE_SINGLE = 1 #0b0001
+    MEASURE_8HZ = 2 #0b0010 # 8 Hz (mode 1)
+    EXT_TRIG = 4 #0b0100
+    MEASURE_100HZ =  5 #0b0110 # 100 Hz (mode 2)
+    SELFTEST = 8 #0b1000
+    FUSE = 15 #0b1111
     
 
 class AK8963:
@@ -130,14 +131,16 @@ class AK8963:
 
         self.reset()
 
-        _mode = Mode.FUSE
+        self._mode = Mode.FUSE
         raw_adjustment = self._raw_adjustment_data
-        _mode = Mode.POWERDOWN
-        sleep(100e-6)
+        self. _mode = Mode.POWERDOWN
+        sleep(0.100)
 
         asax = raw_adjustment[0][0]
         asay = raw_adjustment[1][0]
         asaz = raw_adjustment[2][0]
+
+        print(asax, asay, asaz)
 
         self._offset = (0,0,0)
         self._scale = (1,1,1)
@@ -147,7 +150,9 @@ class AK8963:
             ((0.5 * (asaz - 128)) / 128) + 1
         )
 
-        self.start()
+        self._mag_range = Sensitivity.SENSE_16BIT
+        self._mode = Mode.MEASURE_8HZ
+        sleep(0.100)
         
   
     def reset(self):
@@ -164,12 +169,12 @@ class AK8963:
     
 
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
-    _reset = RWBit(_AK8963_ST2, 0, 1)
+    _reset = RWBit(_AK8963_CNTL2, 0, 1)
 
-    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<h", 3)
+    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, ">h", 3)
     _raw_adjustment_data = StructArray(_AK8963_ADJUST, ">b", 3)
 
-    _mode = RWBits(4, _AK8963_CNTL1, 0)
+    _mode = RWBits(4, _AK8963_CNTL1, 0, 1)
     _mag_range = RWBit(_AK8963_CNTL1, 4, 1)
     
     _status = ROUnaryStruct(_AK8963_ST2, ">B")
@@ -184,6 +189,8 @@ class AK8963:
         raw_x = raw_data[0][0]
         raw_y = raw_data[1][0]
         raw_z = raw_data[2][0]
+
+        print(raw_x, raw_y, raw_z)
 
         """
         X, Y, Z axis micro-Tesla (uT) as floats.
