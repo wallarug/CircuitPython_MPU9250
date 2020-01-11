@@ -148,8 +148,8 @@ class AK8963:
 
         print(asax, asay, asaz)
 
-        self._offset = (0,0,0)
-        self._scale = (1,1,1)
+        self._offset = (143.725, 6.00244, -21.6755)
+        self._scale = (1.07464, 0.97619, 0.956875)
         self._adjustment = (
             ((asax - 128.0) / 256.0) + 1.0,
             ((asay - 128.0) / 256.0) + 1.0,
@@ -179,7 +179,7 @@ class AK8963:
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
     _reset = RWBit(_AK8963_CNTL2, 0, 1)
 
-    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<H", 3)
+    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<h", 3)
     _raw_adjustment_data = StructArray(_AK8963_ADJUST, "<B", 3)
 
     _mode = RWBits(4, _AK8963_CNTL1, 0, 1)
@@ -194,18 +194,21 @@ class AK8963:
         gauss values.
         """
         raw_data = self._raw_magnet_data
-        raw_x = _twos_comp(raw_data[0][0], 16)
-        raw_y = _twos_comp(raw_data[1][0], 16)
-        raw_z = _twos_comp(raw_data[2][0], 16)
+        #raw_x = _twos_comp(raw_data[0][0], 16)
+        #raw_y = _twos_comp(raw_data[1][0], 16)
+        #raw_z = _twos_comp(raw_data[2][0], 16)
+        raw_x = raw_data[0][0]
+        raw_y = raw_data[1][0]
+        raw_z = raw_data[2][0]
 
         print(raw_x, raw_y, raw_z)
 
         self._status # Enable updating readings again
 
         # Apply factory axial sensitivy adjustments
-        raw_x *= self._adjustment[0]
-        raw_y *= self._adjustment[1]
-        raw_z *= self._adjustment[2]
+        #raw_x *= self._adjustment[0]
+        #raw_y *= self._adjustment[1]
+        #raw_z *= self._adjustment[2]
 
         # Apply output scale determined in constructor
         mag_range = self._mag_range
@@ -215,12 +218,15 @@ class AK8963:
             mag_scale = 1.499389499 # for mG (milliGauss) calc: 10.*4912./32760.0
         if mag_range == Sensitivity.SENSE_14BIT:
             #mag_scale = 0.6 - for uT (mico-tesla)
-            mag_scal = 5.997557998 # for mG (millGauss) calc: 10.*4912./8190.0
+            mag_scale = 5.997557998 # for mG (millGauss) calc: 10.*4912./8190.0
 
         # setup range dependant scaling and offsets
-        mag_x = ((raw_x / mag_scale) - self._offset[0]) * self._scale[0]
-        mag_y = ((raw_y / mag_scale) - self._offset[1]) * self._scale[1]
-        mag_z = ((raw_z / mag_scale) - self._offset[2]) * self._scale[2]
+        #mag_x = ((raw_x / mag_scale) - self._offset[0]) * self._scale[0]
+        #mag_y = ((raw_y / mag_scale) - self._offset[1]) * self._scale[1]
+        #mag_z = ((raw_z / mag_scale) - self._offset[2]) * self._scale[2]
+        mag_x = (raw_x * mag_scale * self._scale[0]) - self._offset[0]
+        mag_y = (raw_y * mag_scale * self._scale[1]) - self._offset[1]
+        mag_z = (raw_z * mag_scale * self._scale[2]) - self._offset[1]
 
         return (mag_x, mag_y, mag_z)
 
@@ -238,23 +244,41 @@ class AK8963:
         delay: float
             Delay between the magntometer readings in seconds.
         """
+        print("Starting Calibration.")
+        print("The magnetometer needs to be turned in all possible directions \
+        during the callibration process. Ideally each axis would once  \
+        line up with the magnetic field.")
+        
         self._offset = (0, 0, 0)
         self._scale = (1, 1, 1)
 
-        reading = self.magnetic
-        minx = maxx = reading[0]
-        miny = maxy = reading[1]
-        minz = maxz = reading[2]
+        raw_data = self._raw_magnet_data
+        raw_x = raw_data[0][0]
+        raw_y = raw_data[1][0]
+        raw_z = raw_data[2][0]
+        self._status # Enable updating readings again
+        
+        minx = maxx = raw_x
+        miny = maxy = raw_y
+        minz = maxz = raw_z
 
         while count:
             sleep(delay)
-            reading = self.read_magnetic()
-            minx = min(minx, reading[0])
-            maxx = max(maxx, reading[0])
-            miny = min(miny, reading[1])
-            maxy = max(maxy, reading[1])
-            minz = min(minz, reading[2])
-            maxz = max(maxz, reading[2])
+
+            raw_data = self._raw_magnet_data
+            print(raw_x, raw_y, raw_z)
+            raw_x = raw_data[0][0]
+            raw_y = raw_data[1][0]
+            raw_z = raw_data[2][0]
+            self._status # Enable updating readings again
+            
+            minx = min(minx, raw_x)
+            maxx = max(maxx, raw_x)
+            miny = min(miny, raw_y)
+            maxy = max(maxy, raw_y)
+            minz = min(minz, raw_z)
+            maxz = max(maxz, raw_z)
+
             count -= 1
 
         # Hard iron correction
@@ -263,6 +287,10 @@ class AK8963:
         offset_z = (maxz + minz) / 2
 
         self._offset = (offset_x, offset_y, offset_z)
+
+        print("+++++++++++")
+        print("Hard Iron Offset Values:")
+        print(self._offset)
 
         # Soft iron correction
         avg_delta_x = (maxx - minx) / 2
@@ -276,5 +304,7 @@ class AK8963:
         scale_z = avg_delta / avg_delta_z
 
         self._scale = (scale_x, scale_y, scale_z)
-    
+
+        print("Soft iron values")
+        print(self._scale)
     

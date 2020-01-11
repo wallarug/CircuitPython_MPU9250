@@ -133,6 +133,9 @@ class MPU9250:
         """Magnetometer X, Y and Z asix data in micro-Tesla (uT)"""
         return self._akm.magnetic
 
+    def cal_mag(self):
+        return self._akm.calibrate()
+
     
 
     
