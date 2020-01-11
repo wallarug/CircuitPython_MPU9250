@@ -116,21 +116,22 @@ class MPU9250:
     @property
     def temperature(self):
         """The current temperature in  º C"""
-        return self._mpu.temperature()
+        return self._mpu.temperature
 
     @property
     def acceleration(self):
         """Acceleration X, Y, and Z axis data in m/s^2"""
-        return self._mpu.acceleration()
+        return self._mpu.acceleration
 
     @property
     def gyro(self):
         """Gyroscope X, Y, and Z axis data in º/s"""
-        return self._mpu.gyro()
+        return self._mpu.gyro
 
     @property
     def magnetic(self):
-        return self._akm.magnetic()
+        """Magnetometer X, Y and Z asix data in micro-Tesla (uT)"""
+        return self._akm.magnetic
 
     
 
