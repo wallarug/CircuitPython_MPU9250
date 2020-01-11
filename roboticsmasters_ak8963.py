@@ -151,9 +151,9 @@ class AK8963:
         self._offset = (0,0,0)
         self._scale = (1,1,1)
         self._adjustment = (
-            ((0.5 * (asax - 128)) / 128) + 1,
-            ((0.5 * (asay - 128)) / 128) + 1,
-            ((0.5 * (asaz - 128)) / 128) + 1
+            ((asax - 128.0) / 256.0) + 1.0,
+            ((asay - 128.0) / 256.0) + 1.0,
+            ((asaz - 128.0) / 256.0) + 1.0
         )
 
         print(self._adjustment)
