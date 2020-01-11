@@ -220,6 +220,7 @@ class AK8963:
             #mag_scale = 0.6 - for uT (mico-tesla)
             mag_scal = 5.997557998 # for mG (millGauss) calc: 10.*4912./8190.0
 
+        # setup range dependant scaling and offsets
         mag_x = ((raw_x / mag_scale) - self._offset[0]) * self._scale[0]
         mag_y = ((raw_y / mag_scale) - self._offset[1]) * self._scale[1]
         mag_z = ((raw_z / mag_scale) - self._offset[2]) * self._scale[2]
@@ -230,7 +231,7 @@ class AK8963:
         """
         Calibrate the magnetometer.
 
-        The magnetometer needs to be turned in alll possible directions
+        The magnetometer needs to be turned in all possible directions
         during the callibration process. Ideally each axis would once 
         line up with the magnetic field.
 
