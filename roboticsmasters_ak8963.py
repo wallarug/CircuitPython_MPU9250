@@ -116,7 +116,13 @@ class Mode:
     MEASURE_100HZ =  5 #0b0110 # 100 Hz (mode 2)
     SELFTEST = 8 #0b1000
     FUSE = 15 #0b1111
-    
+
+def _twos_comp(val, bits):
+    # Convert an unsigned integer in 2's compliment form of the specified bit
+    # length to its signed integer value and return it.
+    if val & (1 << (bits - 1)) != 0:
+        return val - (1 << bits)
+    return val    
 
 class AK8963:
     """Driver for the AK8963 magnetometer.
@@ -150,6 +156,8 @@ class AK8963:
             ((0.5 * (asaz - 128)) / 128) + 1
         )
 
+        print(self._adjustment)
+
         self._mag_range = Sensitivity.SENSE_16BIT
         self._mode = Mode.MEASURE_8HZ
         sleep(0.100)
@@ -171,8 +179,8 @@ class AK8963:
     _device_id = ROUnaryStruct(_AK8963_WIA, ">B")
     _reset = RWBit(_AK8963_CNTL2, 0, 1)
 
-    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, ">h", 3)
-    _raw_adjustment_data = StructArray(_AK8963_ADJUST, ">b", 3)
+    _raw_magnet_data = StructArray(_AK8963_MAG_OUT, "<H", 3)
+    _raw_adjustment_data = StructArray(_AK8963_ADJUST, "<B", 3)
 
     _mode = RWBits(4, _AK8963_CNTL1, 0, 1)
     _mag_range = RWBit(_AK8963_CNTL1, 4, 1)
@@ -185,16 +193,16 @@ class AK8963:
         """The magnetometer X, Y, Z axis values as a 3-tuple of
         micro-Tesla (uT) values.
         """
+        """The magnetometer X, Y, Z axis values as a 3-tuple of
+        gauss values.
+        """
         raw_data = self._raw_magnet_data
-        raw_x = raw_data[0][0]
-        raw_y = raw_data[1][0]
-        raw_z = raw_data[2][0]
+        raw_x = _twos_comp(raw_data[0][0], 16)
+        raw_y = _twos_comp(raw_data[1][0], 16)
+        raw_z = _twos_comp(raw_data[2][0], 16)
 
         print(raw_x, raw_y, raw_z)
 
-        """
-        X, Y, Z axis micro-Tesla (uT) as floats.
-        """
         self._status # Enable updating readings again
 
         # Apply factory axial sensitivy adjustments
@@ -206,26 +214,17 @@ class AK8963:
         mag_range = self._mag_range
         mag_scale = 1
         if mag_range == Sensitivity.SENSE_16BIT:
-            mag_scale = 0.15
+            #mag_scale = 0.15 - for uT (micro-tesla)
+            mag_scale = 1.499389499 # for mG (milliGauss) calc: 10.*4912./32760.0
         if mag_range == Sensitivity.SENSE_14BIT:
-            mag_scale = 0.6
-        
-        raw_x *= mag_scale
-        raw_y *= mag_scale
-        raw_z *= mag_scale
+            #mag_scale = 0.6 - for uT (mico-tesla)
+            mag_scal = 5.997557998 # for mG (millGauss) calc: 10.*4912./8190.0
 
-        # Apply hard iron ie. offset bias from calibration
-        raw_x -= self._offset[0]
-        raw_y -= self._offset[1]
-        raw_z -= self._offset[2]
+        mag_x = ((raw_x / mag_scale) - self._offset[0]) * self._scale[0]
+        mag_y = ((raw_y / mag_scale) - self._offset[1]) * self._scale[1]
+        mag_z = ((raw_z / mag_scale) - self._offset[2]) * self._scale[2]
 
-        # Apply soft iron ie. scale bias from calibration
-        raw_x *= self._scale[0]
-        raw_y *= self._scale[1]
-        raw_z *= self._scale[2]
-
-        return (raw_x, raw_y, raw_z)
-
+        return (mag_x, mag_y, mag_z)
 
     def calibrate(self, count=256, delay=0.200):
         """
