@@ -191,9 +191,6 @@ class AK8963:
     @property
     def magnetic(self):
         """The magnetometer X, Y, Z axis values as a 3-tuple of
-        micro-Tesla (uT) values.
-        """
-        """The magnetometer X, Y, Z axis values as a 3-tuple of
         gauss values.
         """
         raw_data = self._raw_magnet_data
