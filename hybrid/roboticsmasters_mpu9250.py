@@ -104,7 +104,26 @@ _MPU6500_PWR_MGMT_2       = 0x6C # Secondary power/sleep control register
 _MPU6500_WHO_AM_I         = 0x75 # Device ID register
 
 
+_AK8963_DEFAULT_ADDRESS    = 0x0c # AK8963 default i2c address
+_AK8963_DEVICE_ID          = 0x48 # MPU9250 WHO_AM_I value
 
+_AK8963_WIA                = 0x00 # Device ID register
+_AK8963_INFO               = 0x01 # Device Information register
+_AK8963_ST1                = 0x02 # Status register 1
+_AK8963_MAG_OUT            = 0x03 # base address for sensor data reads
+_AK8963_HXL                = 0x03 # 
+_AK8963_HXH                = 0x04
+_AK8963_HYL                = 0x05
+_AK8963_HYH                = 0x06
+_AK8963_HZL                = 0x07
+_AK8963_HZH                = 0x08
+_AK8963_ST2                = 0x09
+_AK8963_CNTL1              = 0x0A # control register 1
+_AK8963_CNTL2              = 0x0B # control register 2
+_AK8963_ADJUST             = 0x10 # base address for sensor adjust reads
+_AK8963_ASAX               = 0x10
+_AK8963_ASAY               = 0x11
+_AK8963_ASAZ               = 0x12
 
 
 class MPU9250:
@@ -323,9 +342,9 @@ class MPU9250_I2C(MPU9250):
         MPU9250's accelerometer and gyroscope. Options are limited to ``0x40`` or ``0x41``.
         Defaults to ``0x41``.
     """
-    def __init__(self, i2c, mag_address=_LSM9DS1_ADDRESS_MAG,
-                 xg_address=_LSM9DS1_ADDRESS_ACCELGYRO):
-        if mag_address in (0x1c, 0x1e) and xg_address in (0x6a, 0x6b):
+    def __init__(self, i2c, mag_address=_MPU6500_DEFAULT_ADDRESS,
+                 xg_address=_AK8963_DEFAULT_ADDRESS):
+        if mag_address in (0x40, 0x41) and xg_address in (0x0c):
             self._mag_device = i2c_device.I2CDevice(i2c, mag_address)
             self._xg_device = i2c_device.I2CDevice(i2c, xg_address)
             super().__init__()
@@ -469,7 +488,36 @@ class Rate: # pylint: disable=too-few-public-methods
     CYCLE_20_HZ = 2   # 20 Hz
     CYCLE_40_HZ = 3   # 40 Hz    
     
-        
+class Sensitivity:
+    """Allowed values for `range`.
+
+    - ``Rate.CYCLE_1_25_HZ``
+    - ``Rate.CYCLE_5_HZ``
+    - ``Rate.CYCLE_20_HZ``
+    - ``Rate.CYCLE_40_HZ``
+    """
+    SENSE_14BIT = 0
+    SENSE_16BIT = 1
+
+class Mode:
+    """Allowed values for `mode` setting
+
+    - ``Mode.MODE_POWERDOWN``
+    - ``Mode.MODE_SINGLE``
+    - ``Mode.MODE_CONT1``
+    - ``Mode.MODE_CONT2``
+    - ``Mode.MODE_EXT_TRIG``
+    - ``Mode.MODE_SELFTEST``
+    - ``Mode.MODE_FUSE``
+
+    """
+    POWERDOWN = 0 #0b0000
+    MEASURE_SINGLE = 1 #0b0001
+    MEASURE_8HZ = 2 #0b0010 # 8 Hz (mode 1)
+    EXT_TRIG = 4 #0b0100
+    MEASURE_100HZ =  5 #0b0110 # 100 Hz (mode 2)
+    SELFTEST = 8 #0b1000
+    FUSE = 15 #0b1111        
 
 
 
