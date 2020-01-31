@@ -47,18 +47,21 @@ Implementation Notes
 # * Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
 """
 
-from time import sleep
-import adafruit_bus_device.i2c_device as i2c_device
-from adafruit_register.i2c_bit import RWBit
-from adafruit_register.i2c_struct import ROUnaryStruct
-
-from roboticsmasters_mpu6500 import MPU6500
-from roboticsmasters_ak8963 import AK8963
-
+from time
 try:
     import struct
 except ImportError:
     import ustruct as struct
+
+# not required
+from adafruit_register.i2c_bit import RWBit
+from adafruit_register.i2c_bits import RWBits
+from adafruit_register.i2c_struct import UnaryStruct, ROUnaryStruct
+from adafruit_register.i2c_struct_array import StructArray
+
+# required
+import adafruit_bus_device.i2c_device as i2c_device
+import adafruit_bus_device.spi_device as spi_device
 from micropython import const
 
 
@@ -140,6 +143,7 @@ class MPU9250:
     def __init__(self, i2c_bus,
                  mpu_addr=_MPU6500_DEFAULT_ADDRESS,
                  akm_addr=_AK8963_DEFAULT_ADDRESS):
+        
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, mpu_addr)
 
         if self._device_id != _MPU9250_DEVICE_ID:
