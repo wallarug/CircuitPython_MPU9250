@@ -47,6 +47,9 @@ Implementation Notes
 # * Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
 """
 
+__version__ = "0.0.0-auto.0"
+__repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
+
 from time
 try:
     import struct
@@ -65,9 +68,7 @@ import adafruit_bus_device.spi_device as spi_device
 from micropython import const
 
 
-__version__ = "0.0.0-auto.0"
-__repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
-
+# Internal constants and register values:
 # pylint: disable=bad-whitespace
 _MPU9250_DEFAULT_ADDRESS    = const(0x69) # MPU9250 default i2c address
 _MPU9250_DEVICE_ID          = const(0x71) # MPU9250 WHO_AM_I value
@@ -79,8 +80,6 @@ _MPU9250_INT_STATUS         = const(0x3A) # Interrupt Status
 _MPU9250_I2C_MST_CTRL       = const(0x24) #
 _MPU9250_WHO_AM_I           = const(0x75) # Device ID register
 
-
-# pylint: enable=bad-whitespace
 _MPU6500_DEFAULT_ADDRESS    = const(0x69) # MPU6500 default i2c address
 _MPU6500_DEVICE_ID          = const(0x71) # MPU9250 WHO_AM_I value
 
@@ -124,22 +123,21 @@ _AK8963_ASAX               = const(0x10)
 _AK8963_ASAY               = const(0x11)
 _AK8963_ASAZ               = const(0x12)
 
+_MAGTYPE                         = True
+_XGTYPE                          = False
+# pylint: enable=bad-whitespace
 
 class MPU9250:
-    """Driver for the MPU9250 9-DoF IMU.
-        :param ~busio.I2C i2c_bus: The I2C bus the MPU9250 is connected to.
-        :param address: The I2C slave address of the sensor
-    """
+    """Driver for the MPU9250 9-DoF IMU accelerometer, magnetometer, gyroscope."""
 
     # Class-level buffer for reading and writing data with the sensor.
     # This reduces memory allocations but means the code is not re-entrant or
     # thread safe!
     _BUFFER = bytearray(6)
 
-    def __init__(self, i2c_bus,
-                 mpu_addr=_MPU6500_DEFAULT_ADDRESS,
-                 akm_addr=_AK8963_DEFAULT_ADDRESS):
-        
+    def __init__(self):
+        # soft reset & reboot accel/gyro
+        self._write_u8(_XGTYPE, _
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, mpu_addr)
 
         if self._device_id != _MPU9250_DEVICE_ID:
