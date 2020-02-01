@@ -69,64 +69,60 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
 
 # pylint: disable=bad-whitespace
-_MPU9250_DEFAULT_ADDRESS    = 0x69 # MPU9250 default i2c address
-_MPU9250_DEVICE_ID          = 0x71 # MPU9250 WHO_AM_I value
+_MPU9250_DEFAULT_ADDRESS    = const(0x69) # MPU9250 default i2c address
+_MPU9250_DEVICE_ID          = const(0x71) # MPU9250 WHO_AM_I value
 
-_MPU6500_DEFAULT_ADDRESS    = 0x69 # MPU6500 default i2c address
-_AK8963_DEFAULT_ADDRESS     = 0x0c # AK8963 default i2c address
+_MPU9250_INT_PIN_CFG        = const(0x37) # I2C Bypass enable configuration
+_MPU9250_INT_ENABLE         = const(0x38) # Interrupt Enable
+_MPU9250_INT_STATUS         = const(0x3A) # Interrupt Status
 
-
-_MPU9250_INT_PIN_CFG        = 0x37 # I2C Bypass enable configuration
-_MPU9250_INT_ENABLE         = 0x38 # Interrupt Enable
-_MPU9250_INT_STATUS         = 0x3A # Interrupt Status
-
-_MPU9250_I2C_MST_CTRL       = 0x24 #
-_MPU9250_WHO_AM_I           = 0x75 # Device ID register
+_MPU9250_I2C_MST_CTRL       = const(0x24) #
+_MPU9250_WHO_AM_I           = const(0x75) # Device ID register
 
 
 # pylint: enable=bad-whitespace
-_MPU6500_DEFAULT_ADDRESS    = 0x69 # MPU6500 default i2c address
-_MPU6500_DEVICE_ID          = 0x71 # MPU9250 WHO_AM_I value
+_MPU6500_DEFAULT_ADDRESS    = const(0x69) # MPU6500 default i2c address
+_MPU6500_DEVICE_ID          = const(0x71) # MPU9250 WHO_AM_I value
 
-_MPU6500_SELF_TEST_X      = 0x0D # Self test factory calibrated values register
-_MPU6500_SELF_TEST_Y      = 0x0E # Self test factory calibrated values register
-_MPU6500_SELF_TEST_Z      = 0x0F # Self test factory calibrated values register
-_MPU6500_SELF_TEST_A      = 0x10 # Self test factory calibrated values register
-_MPU6500_SMPLRT_DIV       = 0x19 # sample rate divisor register
-_MPU6500_CONFIG           = 0x1A # General configuration register
-_MPU6500_GYRO_CONFIG      = 0x1B # Gyro specfic configuration register
-_MPU6500_ACCEL_CONFIG     = 0x1C # Accelerometer specific configration register
-_MPU6500_INT_PIN_CONFIG   = 0x37 # Interrupt pin configuration register
-_MPU6500_ACCEL_OUT        = 0x3B # base address for sensor data reads
-_MPU6500_TEMP_OUT         = 0x41 # Temperature data high byte register
-_MPU6500_GYRO_OUT         = 0x43 # base address for sensor data reads
-_MPU6500_SIG_PATH_RESET   = 0x68 # register to reset sensor signal paths
-_MPU6500_USER_CTRL        = 0x6A # FIFO and I2C Master control register
-_MPU6500_PWR_MGMT_1       = 0x6B # Primary power/sleep control register
-_MPU6500_PWR_MGMT_2       = 0x6C # Secondary power/sleep control register
-_MPU6500_WHO_AM_I         = 0x75 # Device ID register
+_MPU6500_SELF_TEST_X      = const(0x0D) # Self test factory calibrated values register
+_MPU6500_SELF_TEST_Y      = const(0x0E) # Self test factory calibrated values register
+_MPU6500_SELF_TEST_Z      = const(0x0F) # Self test factory calibrated values register
+_MPU6500_SELF_TEST_A      = const(0x10) # Self test factory calibrated values register
+_MPU6500_SMPLRT_DIV       = const(0x19) # sample rate divisor register
+_MPU6500_CONFIG           = const(0x1A) # General configuration register
+_MPU6500_GYRO_CONFIG      = const(0x1B) # Gyro specfic configuration register
+_MPU6500_ACCEL_CONFIG     = const(0x1C) # Accelerometer specific configration register
+_MPU6500_INT_PIN_CONFIG   = const(0x37) # Interrupt pin configuration register
+_MPU6500_ACCEL_OUT        = const(0x3B) # base address for sensor data reads
+_MPU6500_TEMP_OUT         = const(0x41) # Temperature data high byte register
+_MPU6500_GYRO_OUT         = const(0x43) # base address for sensor data reads
+_MPU6500_SIG_PATH_RESET   = const(0x68) # register to reset sensor signal paths
+_MPU6500_USER_CTRL        = const(0x6A) # FIFO and I2C Master control register
+_MPU6500_PWR_MGMT_1       = const(0x6B) # Primary power/sleep control register
+_MPU6500_PWR_MGMT_2       = const(0x6C) # Secondary power/sleep control register
+_MPU6500_WHO_AM_I         = const(0x75) # Device ID register
 
 
-_AK8963_DEFAULT_ADDRESS    = 0x0c # AK8963 default i2c address
-_AK8963_DEVICE_ID          = 0x48 # MPU9250 WHO_AM_I value
+_AK8963_DEFAULT_ADDRESS    = const(0x0c) # AK8963 default i2c address
+_AK8963_DEVICE_ID          = const(0x48) # MPU9250 WHO_AM_I value
 
-_AK8963_WIA                = 0x00 # Device ID register
-_AK8963_INFO               = 0x01 # Device Information register
-_AK8963_ST1                = 0x02 # Status register 1
-_AK8963_MAG_OUT            = 0x03 # base address for sensor data reads
-_AK8963_HXL                = 0x03 # 
-_AK8963_HXH                = 0x04
-_AK8963_HYL                = 0x05
-_AK8963_HYH                = 0x06
-_AK8963_HZL                = 0x07
-_AK8963_HZH                = 0x08
-_AK8963_ST2                = 0x09
-_AK8963_CNTL1              = 0x0A # control register 1
-_AK8963_CNTL2              = 0x0B # control register 2
-_AK8963_ADJUST             = 0x10 # base address for sensor adjust reads
-_AK8963_ASAX               = 0x10
-_AK8963_ASAY               = 0x11
-_AK8963_ASAZ               = 0x12
+_AK8963_WIA                = const(0x00) # Device ID register
+_AK8963_INFO               = const(0x01) # Device Information register
+_AK8963_ST1                = const(0x02) # Status register 1
+_AK8963_MAG_OUT            = const(0x03) # base address for sensor data reads
+_AK8963_HXL                = const(0x03) # 
+_AK8963_HXH                = const(0x04)
+_AK8963_HYL                = const(0x05)
+_AK8963_HYH                = const(0x06)
+_AK8963_HZL                = const(0x07)
+_AK8963_HZH                = const(0x08)
+_AK8963_ST2                = const(0x09)
+_AK8963_CNTL1              = const(0x0A) # control register 1
+_AK8963_CNTL2              = const(0x0B) # control register 2
+_AK8963_ADJUST             = const(0x10) # base address for sensor adjust reads
+_AK8963_ASAX               = const(0x10)
+_AK8963_ASAY               = const(0x11)
+_AK8963_ASAZ               = const(0x12)
 
 
 class MPU9250:
