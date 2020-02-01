@@ -137,8 +137,54 @@ class MPU9250:
 
     def __init__(self):
         # soft reset & reboot accel/gyro
-        self._write_u8(_XGTYPE, _
-        self.i2c_device = i2c_device.I2CDevice(i2c_bus, mpu_addr)
+        self._write_u8(_XG_TYPE, _MPU6500_PWR_MGMT_1, 0x01)
+        time.sleep(0.01)
+        self._write_u8(_XGTYPE, _MPU6500_SIG_PATH_RESET, 0x07)
+        time.sleep(0.01)
+        # soft reset & reboot magnetometer
+        self._write_u8(_MAGTYPE, _AK8963_CNTL2, 0x01)
+        time.sleep(0.01)
+        # Check ID registers.
+        if self._read_u8(_XGTYPE, _MPU6500_WHO_AM_I) != _MPU6500_DEVICE_ID or \
+           self._read_u8(_MAGTYPE, _AK8963_WIA) != _AK8963_DEVICE_ID:
+            raise RuntimeError('Could not find MPU9250, check wiring!')
+        # enable gyro continous
+        #TODO
+        # Enable the accelerometer continous
+        #TODO
+        # enable mag continous
+        #TODO
+        # Set the default ranges for the various sensors
+        self._filter_bandwidth = Bandwidth.BAND_260_HZ
+        self._gyro_range = GyroRange.RANGE_500_DPS
+        self._accel_range = Range.RANGE_2_G
+
+        # calibrate mag
+        self._mode = Mode.FUSE
+        raw_adjustment = self._raw_adjustment_data
+        self. _mode = Mode.POWERDOWN
+        sleep(0.100)
+
+        asax = raw_adjustment[0][0]
+        asay = raw_adjustment[1][0]
+        asaz = raw_adjustment[2][0]
+
+        print(asax, asay, asaz)
+
+        self._offset = (143.725, 6.00244, -21.6755)
+        self._scale = (1.07464, 0.97619, 0.956875)
+        self._adjustment = (
+            ((asax - 128.0) / 256.0) + 1.0,
+            ((asay - 128.0) / 256.0) + 1.0,
+            ((asaz - 128.0) / 256.0) + 1.0
+        )
+
+        print(self._adjustment)
+
+        self._mag_range = Sensitivity.SENSE_16BIT
+        self._mode = Mode.MEASURE_8HZ
+        sleep(0.100)
+
 
         if self._device_id != _MPU9250_DEVICE_ID:
             raise RuntimeError("Failed to find MPU9250 - check your wiring!")
