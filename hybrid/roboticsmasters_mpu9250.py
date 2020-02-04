@@ -216,7 +216,7 @@ class MPU9250:
         # Read the accelerometer
         self._read_bytes(_XGTYPE, 0x80 | _MPU6500_ACCEL_OUT, 6,
                          self._BUFFER)
-        raw_x, raw_y, raw_z = struct.unpack_from('<hhh', self._BUFFER[0:6])
+        raw_x, raw_y, raw_z = struct.unpack_from('>hhh', self._BUFFER[0:6])
         return (raw_x, raw_y, raw_z)    
 
     @property
@@ -245,7 +245,17 @@ class MPU9250:
 
         return (accel_x, accel_y, accel_z)
 
-    
+    def read_gyro_raw(self):
+        """Read the raw gyroscope sensor values and return it as a
+        3-tuple of X, Y, Z axis values that are 16-bit unsigned values.  If you
+        want the gyroscope in nice units you probably want to use the
+        gyroscope property!
+        """
+        # Read the gyroscope
+        self._read_bytes(_XGTYPE, 0x80 | _MPU6500_GYRO_OUT, 6,
+                         self._BUFFER)
+        raw_x, raw_y, raw_z = struct.unpack_from('>hhh', self._BUFFER[0:6])
+        return (raw_x, raw_y, raw_z)
 
     @property
     def gyro(self):
@@ -333,6 +343,18 @@ class MPU9250:
         sleep(0.01)
 
     ## MAG
+    def read_mag_raw(self):
+        """Read the raw magnetometer sensor values and return it as a
+        3-tuple of X, Y, Z axis values that are 16-bit unsigned values.  If you
+        want the magnetometer in nice units you probably want to use the
+        magnetometer property!
+        """
+        # Read the magnetometer
+        self._read_bytes(_MAGTYPE, 0x80 | _AK8963_MAG_OUT, 6,
+                         self._BUFFER)
+        raw_x, raw_y, raw_z = struct.unpack_from('<hhh', self._BUFFER[0:6])
+        return (raw_x, raw_y, raw_z)
+    
     @property
     def magnetic(self):
         """The magnetometer X, Y, Z axis values as a 3-tuple of
