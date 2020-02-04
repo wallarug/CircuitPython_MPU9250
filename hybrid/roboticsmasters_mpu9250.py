@@ -206,6 +206,19 @@ class MPU9250:
         temp = (raw_temperature / 333.87) + 21.0
         return temp
 
+
+    def read_accel_raw(self):
+        """Read the raw accelerometer sensor values and return it as a
+        3-tuple of X, Y, Z axis values that are 16-bit unsigned values.  If you
+        want the acceleration in nice units you probably want to use the
+        accelerometer property!
+        """
+        # Read the accelerometer
+        self._read_bytes(_XGTYPE, 0x80 | _MPU6500_ACCEL_OUT, 6,
+                         self._BUFFER)
+        raw_x, raw_y, raw_z = struct.unpack_from('<hhh', self._BUFFER[0:6])
+        return (raw_x, raw_y, raw_z)    
+
     @property
     def acceleration(self):
         """Acceleration X, Y, and Z axis data in m/s^2"""
@@ -231,6 +244,8 @@ class MPU9250:
         accel_z = (raw_z / accel_scale) * STANDARD_GRAVITY
 
         return (accel_x, accel_y, accel_z)
+
+    
 
     @property
     def gyro(self):
@@ -317,6 +332,126 @@ class MPU9250:
         self._cycle_rate = value
         sleep(0.01)
 
+    ## MAG
+    @property
+    def magnetic(self):
+        """The magnetometer X, Y, Z axis values as a 3-tuple of
+        gauss values.
+        """
+        raw_data = self._raw_magnet_data
+        #raw_x = _twos_comp(raw_data[0][0], 16)
+        #raw_y = _twos_comp(raw_data[1][0], 16)
+        #raw_z = _twos_comp(raw_data[2][0], 16)
+        raw_x = raw_data[0][0]
+        raw_y = raw_data[1][0]
+        raw_z = raw_data[2][0]
+
+        print(raw_x, raw_y, raw_z)
+
+        self._status # Enable updating readings again
+
+        # Apply factory axial sensitivy adjustments
+        #raw_x *= self._adjustment[0]
+        #raw_y *= self._adjustment[1]
+        #raw_z *= self._adjustment[2]
+
+        # Apply output scale determined in constructor
+        mag_range = self._mag_range
+        mag_scale = 1
+        if mag_range == Sensitivity.SENSE_16BIT:
+            #mag_scale = 0.15 - for uT (micro-tesla)
+            mag_scale = 1.499389499 # for mG (milliGauss) calc: 10.*4912./32760.0
+        if mag_range == Sensitivity.SENSE_14BIT:
+            #mag_scale = 0.6 - for uT (mico-tesla)
+            mag_scale = 5.997557998 # for mG (millGauss) calc: 10.*4912./8190.0
+
+        # setup range dependant scaling and offsets
+        #mag_x = ((raw_x / mag_scale) - self._offset[0]) * self._scale[0]
+        #mag_y = ((raw_y / mag_scale) - self._offset[1]) * self._scale[1]
+        #mag_z = ((raw_z / mag_scale) - self._offset[2]) * self._scale[2]
+        mag_x = (raw_x * mag_scale * self._scale[0]) - self._offset[0]
+        mag_y = (raw_y * mag_scale * self._scale[1]) - self._offset[1]
+        mag_z = (raw_z * mag_scale * self._scale[2]) - self._offset[1]
+
+        return (mag_x, mag_y, mag_z)
+
+    def calibrate(self, count=256, delay=0.200):
+        """
+        Calibrate the magnetometer.
+
+        The magnetometer needs to be turned in all possible directions
+        during the callibration process. Ideally each axis would once 
+        line up with the magnetic field.
+
+        count: int
+            Number of magnetometer readings that are taken for the calibration.
+        
+        delay: float
+            Delay between the magntometer readings in seconds.
+        """
+        print("Starting Calibration.")
+        print("The magnetometer needs to be turned in all possible directions \
+        during the callibration process. Ideally each axis would once  \
+        line up with the magnetic field.")
+        
+        self._offset = (0, 0, 0)
+        self._scale = (1, 1, 1)
+
+        raw_data = self._raw_magnet_data
+        raw_x = raw_data[0][0]
+        raw_y = raw_data[1][0]
+        raw_z = raw_data[2][0]
+        self._status # Enable updating readings again
+        
+        minx = maxx = raw_x
+        miny = maxy = raw_y
+        minz = maxz = raw_z
+
+        while count:
+            sleep(delay)
+
+            raw_data = self._raw_magnet_data
+            print(raw_x, raw_y, raw_z)
+            raw_x = raw_data[0][0]
+            raw_y = raw_data[1][0]
+            raw_z = raw_data[2][0]
+            self._status # Enable updating readings again
+            
+            minx = min(minx, raw_x)
+            maxx = max(maxx, raw_x)
+            miny = min(miny, raw_y)
+            maxy = max(maxy, raw_y)
+            minz = min(minz, raw_z)
+            maxz = max(maxz, raw_z)
+
+            count -= 1
+
+        # Hard iron correction
+        offset_x = (maxx + minx) / 2
+        offset_y = (maxy + miny) / 2
+        offset_z = (maxz + minz) / 2
+
+        self._offset = (offset_x, offset_y, offset_z)
+
+        print("+++++++++++")
+        print("Hard Iron Offset Values:")
+        print(self._offset)
+
+        # Soft iron correction
+        avg_delta_x = (maxx - minx) / 2
+        avg_delta_y = (maxy - miny) / 2
+        avg_delta_z = (maxz - minz) / 2
+
+        avg_delta = (avg_delta_x + avg_delta_y + avg_delta_z) / 3
+
+        scale_x = avg_delta / avg_delta_x
+        scale_y = avg_delta / avg_delta_y
+        scale_z = avg_delta / avg_delta_z
+
+        self._scale = (scale_x, scale_y, scale_z)
+
+        print("Soft iron values")
+        print(self._scale)
     
     ## DEFAULT FROM LSM DRIVER
 
