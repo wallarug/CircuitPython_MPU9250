@@ -127,6 +127,14 @@ _MAGTYPE                         = True
 _XGTYPE                          = False
 # pylint: enable=bad-whitespace
 
+
+def _twos_comp(val, bits):
+    # Convert an unsigned integer in 2's compliment form of the specified bit
+    # length to its signed integer value and return it.
+    if val & (1 << (bits - 1)) != 0:
+        return val - (1 << bits)
+    return val
+
 class MPU9250:
     """Driver for the MPU9250 9-DoF IMU accelerometer, magnetometer, gyroscope."""
 
