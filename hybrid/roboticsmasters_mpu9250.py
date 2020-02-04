@@ -197,6 +197,17 @@ class MPU9250:
         
         self._akm = AK8963(i2c_bus, akm_addr)
 
+    def read_temp_raw(self):
+        """Read the raw temperature sensor value and return it as a 12-bit
+        signed value.  If you want the temperature in nice units you probably
+        want to use the temperature property!
+        """
+        # Read temp sensor - TODO: was low bit
+        self._read_bytes(_XGTYPE, 0x80 | _MPU6500_TEMP_OUT, 2,
+                         self._BUFFER)
+        temp = ((self._BUFFER[1] << 8) | self._BUFFER[0]) >> 4
+        return _twos_comp(temp, 12)
+
     @property
     def temperature(self):
         """The current temperature in  º C"""
