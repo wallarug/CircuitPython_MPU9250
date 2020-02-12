@@ -50,7 +50,7 @@ Implementation Notes
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/wallarug/CircuitPython_MPU9250.git"
 
-from time
+import time
 try:
     import struct
 except ImportError:
@@ -564,7 +564,7 @@ class MPU9250_I2C(MPU9250):
     """
     def __init__(self, i2c, mag_address=_MPU6500_DEFAULT_ADDRESS,
                  xg_address=_AK8963_DEFAULT_ADDRESS):
-        if mag_address in (0x40, 0x41) and xg_address in (0x0c):
+        if mag_address in (0x68, 0x69) and xg_address in (0x0c, 0x0b):
             self._mag_device = i2c_device.I2CDevice(i2c, mag_address)
             self._xg_device = i2c_device.I2CDevice(i2c, xg_address)
             super().__init__()
