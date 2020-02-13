@@ -154,6 +154,10 @@ class MPU9250:
         Gscale = GyroRange.RANGE_500_DPS
         Mscale = Sensitivity.SENSE_14BIT
         sampleRate = 0x04
+
+        self._filter_bandwidth = Bandwidth.BAND_260_HZ
+        self._gyro_range = GyroRange.RANGE_500_DPS
+        self._accel_range = AccelRange.RANGE_2_G
         
         # soft reset & reboot accel/gyro
         self._write_u8(_XGTYPE, _MPU6500_PWR_MGMT_1, 0x00)
@@ -282,20 +286,20 @@ class MPU9250:
     @property
     def acceleration(self):
         """Acceleration X, Y, and Z axis data in m/s^2"""
-        raw_data = self._raw_accel_data
-        raw_x = raw_data[0][0]
-        raw_y = raw_data[1][0]
-        raw_z = raw_data[2][0]
+        raw_data = self.read_accel_raw()
+        raw_x = raw_data[0]
+        raw_y = raw_data[1]
+        raw_z = raw_data[2]
 
         accel_range = self._accel_range
         accel_scale = 1
-        if accel_range == Range.RANGE_16_G:
+        if accel_range == AccelRange.RANGE_16_G:
             accel_scale = 2048
-        if accel_range == Range.RANGE_8_G:
+        if accel_range == AccelRange.RANGE_8_G:
             accel_scale = 4096
-        if accel_range == Range.RANGE_4_G:
+        if accel_range == AccelRange.RANGE_4_G:
             accel_scale = 8192
-        if accel_range == Range.RANGE_2_G:
+        if accel_range == AccelRange.RANGE_2_G:
             accel_scale = 16384
 
         # setup range dependant scaling
@@ -320,10 +324,10 @@ class MPU9250:
     @property
     def gyro(self):
         """Gyroscope X, Y, and Z axis data in º/s"""
-        raw_data = self._raw_gyro_data
-        raw_x = raw_data[0][0]
-        raw_y = raw_data[1][0]
-        raw_z = raw_data[2][0]
+        raw_data = self.read_gyro_raw()
+        raw_x = raw_data[0]
+        raw_y = raw_data[1]
+        raw_z = raw_data[2]
 
         gyro_scale = 1
         gyro_range = self._gyro_range
