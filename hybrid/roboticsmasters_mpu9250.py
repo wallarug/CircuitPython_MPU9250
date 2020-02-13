@@ -130,6 +130,8 @@ _AK8963_ASAZ               = const(0x12)
 
 _MAGTYPE                         = True
 _XGTYPE                          = False
+
+STANDARD_GRAVITY = 9.80665
 # pylint: enable=bad-whitespace
 
 
@@ -264,7 +266,7 @@ class MPU9250:
     @property
     def temperature(self):
         """The current temperature in  º C"""
-        raw_temperature = self._raw_temp_data
+        raw_temperature = self.read_temp_raw()
         #temp = (raw_temperature + 12412.0) / 340.0
         #temp = (raw_temperature / 340.0) + 36.53
         temp = (raw_temperature / 333.87) + 21.0
