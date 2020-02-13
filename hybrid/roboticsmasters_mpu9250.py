@@ -558,34 +558,6 @@ class MPU9250:
         # MUST be implemented by subclasses!
         raise NotImplementedError()
 
-    def reset(self):
-        """Reinitialize the sensor"""
-        self._mpu.reset()
-        self._akm.reset()
-
-    @property
-    def temperature(self):
-        """The current temperature in  º C"""
-        return self._mpu.temperature
-
-    @property
-    def acceleration(self):
-        """Acceleration X, Y, and Z axis data in m/s^2"""
-        return self._mpu.acceleration
-
-    @property
-    def gyro(self):
-        """Gyroscope X, Y, and Z axis data in º/s"""
-        return self._mpu.gyro
-
-    @property
-    def magnetic(self):
-        """Magnetometer X, Y and Z asix data in micro-Tesla (uT)"""
-        return self._akm.magnetic
-
-    def cal_mag(self):
-        return self._akm.calibrate()
-
 
 class MPU9250_I2C(MPU9250):
     """Driver for the MPU9250 connect over I2C.
