@@ -198,14 +198,14 @@ class MPU9250:
         self._write_u8(_XGTYPE, _MPU6500_ACCEL_CONFIG2, c)
 
         # Configure Interrupts and Bypass Enable
-        self._write_u8(_XGTYPE, MPU6500_INT_PIN_CONFIG, 0x10) # INT is 50 microsecond pulse and any read to clear 
-        self._write_u8(_XGTYPE, MPU6500_INT_PIN_ENABLE, 0x01) # Enable data ready (bit 0) interrupt
+        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_CONFIG, 0x10) # INT is 50 microsecond pulse and any read to clear 
+        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_ENABLE, 0x01) # Enable data ready (bit 0) interrupt
         time.sleep(0.01)
 
-        self._write_u8(_XGTYPE, MPU6500_USER_CTRL, 0x20) # Enable I2C Master mode
-        self._write_u8(_XGTYPE, MPU6500_I2C_MST_CTRL, 0x1D) # I2C configuration STOP after each transaction, master I2C bus at 400 KHz
-        self._write_u8(_XGTYPE, MPU6500_I2C_MST_DELAY_CTRL, 0x81) # Use blocking data retreival and enable delay for mag sample rate mismatch
-        self._write_u8(_XGTYPE, MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
+        self._write_u8(_XGTYPE, _MPU6500_USER_CTRL, 0x20) # Enable I2C Master mode
+        self._write_u8(_XGTYPE, _MPU6500_I2C_MST_CTRL, 0x1D) # I2C configuration STOP after each transaction, master I2C bus at 400 KHz
+        self._write_u8(_XGTYPE, _MPU6500_I2C_MST_DELAY_CTRL, 0x81) # Use blocking data retreival and enable delay for mag sample rate mismatch
+        self._write_u8(_XGTYPE, _MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
         
 
         # soft reset & reboot magnetometer
@@ -245,17 +245,6 @@ class MPU9250:
 ##        self._mode = Mode.MEASURE_8HZ
 ##        sleep(0.100)
 
-
-        if self._device_id != _MPU9250_DEVICE_ID:
-            raise RuntimeError("Failed to find MPU9250 - check your wiring!")
-
-        self._mpu = MPU6500(i2c_bus, mpu_addr)
-
-        self._bypass = 1
-        self._ready = 1
-        sleep(0.100)
-        
-        self._akm = AK8963(i2c_bus, akm_addr)
 
     def read_temp_raw(self):
         """Read the raw temperature sensor value and return it as a 12-bit
@@ -574,10 +563,6 @@ class MPU9250:
         self._mpu.reset()
         self._akm.reset()
 
-    _device_id = ROUnaryStruct(_MPU9250_WHO_AM_I, ">B")
-    _bypass = RWBit(_MPU9250_INT_PIN_CFG, 1, 1)
-    _ready = RWBit(_MPU9250_INT_ENABLE, 0, 1)
-
     @property
     def temperature(self):
         """The current temperature in  º C"""
@@ -614,10 +599,10 @@ class MPU9250_I2C(MPU9250):
         MPU9250's accelerometer and gyroscope. Options are limited to ``0x40`` or ``0x41``.
         Defaults to ``0x41``.
     """
-    def __init__(self, i2c, mag_address=_MPU6500_DEFAULT_ADDRESS,
-                 xg_address=_AK8963_DEFAULT_ADDRESS):
-        if mag_address in (0x68, 0x69) and xg_address in (0x0c, 0x0b):
-            self._mag_device = i2c_device.I2CDevice(i2c, mag_address)
+    def __init__(self, i2c, mag_address=_AK8963_DEFAULT_ADDRESS,
+                 xg_address=_MPU6500_DEFAULT_ADDRESS):
+        if xg_address in (0x68, 0x69): #and mag_address in (0x0c, 0x0b):
+            #self._mag_device = i2c_device.I2CDevice(i2c, mag_address)
             self._xg_device = i2c_device.I2CDevice(i2c, xg_address)
             super().__init__()
         else:
