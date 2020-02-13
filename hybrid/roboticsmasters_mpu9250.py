@@ -91,6 +91,7 @@ _MPU6500_SMPLRT_DIV       = const(0x19) # sample rate divisor register
 _MPU6500_CONFIG           = const(0x1A) # General configuration register
 _MPU6500_GYRO_CONFIG      = const(0x1B) # Gyro specfic configuration register
 _MPU6500_ACCEL_CONFIG     = const(0x1C) # Accelerometer specific configration register
+_MPU6500_ACCEL_CONFIG2    = const(0x1D) # Accelerometer config register
 _MPU6500_INT_PIN_CONFIG   = const(0x37) # Interrupt pin configuration register
 _MPU6500_ACCEL_OUT        = const(0x3B) # base address for sensor data reads
 _MPU6500_TEMP_OUT         = const(0x41) # Temperature data high byte register
@@ -144,22 +145,65 @@ class MPU9250:
     _BUFFER = bytearray(6)
 
     def __init__(self):
+        # defaults
+        Ascale = AccelRange.RANGE_2_G
+        Gscale = GyroRange.RANGE_500_DPS
+        Mscale = Sensitivity.SENSE_14BIT
+        sampleRate = 0x04
+        
         # soft reset & reboot accel/gyro
-        self._write_u8(_XG_TYPE, _MPU6500_PWR_MGMT_1, 0x01)
+        self._write_u8(_XGTYPE, _MPU6500_PWR_MGMT_1, 0x00)
         time.sleep(0.01)
-        self._write_u8(_XGTYPE, _MPU6500_SIG_PATH_RESET, 0x07)
-        time.sleep(0.01)
-        # soft reset & reboot magnetometer
-        self._write_u8(_MAGTYPE, _AK8963_CNTL2, 0x01)
-        time.sleep(0.01)
+
         # Check ID registers.
-        if self._read_u8(_XGTYPE, _MPU6500_WHO_AM_I) != _MPU6500_DEVICE_ID or \
-           self._read_u8(_MAGTYPE, _AK8963_WIA) != _AK8963_DEVICE_ID:
+        if self._read_u8(_XGTYPE, _MPU6500_WHO_AM_I) != _MPU6500_DEVICE_ID:# or \
+           #self._read_u8(_MAGTYPE, _AK8963_WIA) != _AK8963_DEVICE_ID:
             raise RuntimeError('Could not find MPU9250, check wiring!')
+
+        #self._write_u8(_XGTYPE, _MPU6500_SIG_PATH_RESET, 0x07)
+        #time.sleep(0.01)
+
+        # set stable timesource
+        # Auto select clock source to be PLL gyroscope reference if ready else
+        self._write_u8(_XGTYPE, _MPU6500_PWR_MGMT_1, 0x01)
+        time.sleep(0.01)
+
+        # Configure Gyro and Thermometer
+        self._write_u8(_XGTYPE, _MPU6500_CONFIG, 0x03)
+
+        # Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
+        self._write_u8(_XGTYPE, _MPU6500_SMPLRT_DIV, sampleRate)
+
+        # Set Gyro full-scale range
+        c = self._read_u8(_XGTYPE, _MPU6500_GYRO_CONFIG)
+        c = c & ~0x02 # Clear Fchoice bits [1:0]
+        c = c & ~0x18 # Clear AFS bits [4:3]
+        c = c | Gscale << 3 # Set full scale range for the gyro
+        self._write_u8(_XGTYPE, _MPU6500_GYRO_CONFIG, c)
+
+        # Set accelerometer full-scale range configuration
+        c = self._read_u8(_XGTYPE, _MPU6500_ACCEL_CONFIG)
+        c = c & ~0x18 # Clear AFS bits [4:3]
+        c = c | Ascale << 3 # Set full scale range for the accelerometer 
+        self._write_u8(_XGTYPE, _MPU6500_ACCEL_CONFIG, c)
+
+        # Set accelerometer sample rate configuration
+        c = self._read_u8(_XGTYPE, _MPU6500_ACCEL_CONFIG2)
+        c = c & ~0x0F # Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
+        c = c | 0x03 # Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
+        self._write_u8(_XGTYPE, _MPU6500_ACCEL_CONFIG2, c)
+        
+        # soft reset & reboot magnetometer
+        #self._write_u8(_MAGTYPE, _AK8963_CNTL2, 0x01)
+        #time.sleep(0.01)
+        
+        
+
         # enable gyro continous
-        #TODO
+        # TODO 
+
         # Enable the accelerometer continous
-        #TODO
+        
         # enable mag continous
         #TODO
         # Set the default ranges for the various sensors
@@ -654,7 +698,7 @@ class MPU9250_SPI(MPU9250):
 
   
 
-class Range: # pylint: disable=too-few-public-methods
+class AccelRange: # pylint: disable=too-few-public-methods
     """Allowed values for `accelerometer_range`.
     - ``Range.RANGE_2_G``
     - ``Range.RANGE_4_G``
