@@ -93,11 +93,15 @@ _MPU6500_GYRO_CONFIG      = const(0x1B) # Gyro specfic configuration register
 _MPU6500_ACCEL_CONFIG     = const(0x1C) # Accelerometer specific configration register
 _MPU6500_ACCEL_CONFIG2    = const(0x1D) # Accelerometer config register
 _MPU6500_INT_PIN_CONFIG   = const(0x37) # Interrupt pin configuration register
+_MPU6500_INT_PIN_ENABLE   = const(0x38) # Interrupt pin enable register
 _MPU6500_ACCEL_OUT        = const(0x3B) # base address for sensor data reads
 _MPU6500_TEMP_OUT         = const(0x41) # Temperature data high byte register
 _MPU6500_GYRO_OUT         = const(0x43) # base address for sensor data reads
 _MPU6500_SIG_PATH_RESET   = const(0x68) # register to reset sensor signal paths
 _MPU6500_USER_CTRL        = const(0x6A) # FIFO and I2C Master control register
+_MPU6500_I2C_MST_CTRL     = const(0x24) #
+_MPU6500_I2C_MST_DELAY_CTRL = const(0x67) #
+_MPU6500_I2C_SLV4_CTRL    = const(0x34) #
 _MPU6500_PWR_MGMT_1       = const(0x6B) # Primary power/sleep control register
 _MPU6500_PWR_MGMT_2       = const(0x6C) # Secondary power/sleep control register
 _MPU6500_WHO_AM_I         = const(0x75) # Device ID register
@@ -192,50 +196,54 @@ class MPU9250:
         c = c & ~0x0F # Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
         c = c | 0x03 # Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
         self._write_u8(_XGTYPE, _MPU6500_ACCEL_CONFIG2, c)
+
+        # Configure Interrupts and Bypass Enable
+        self._write_u8(_XGTYPE, MPU6500_INT_PIN_CONFIG, 0x10) # INT is 50 microsecond pulse and any read to clear 
+        self._write_u8(_XGTYPE, MPU6500_INT_PIN_ENABLE, 0x01) # Enable data ready (bit 0) interrupt
+        time.sleep(0.01)
+
+        self._write_u8(_XGTYPE, MPU6500_USER_CTRL, 0x20) # Enable I2C Master mode
+        self._write_u8(_XGTYPE, MPU6500_I2C_MST_CTRL, 0x1D) # I2C configuration STOP after each transaction, master I2C bus at 400 KHz
+        self._write_u8(_XGTYPE, MPU6500_I2C_MST_DELAY_CTRL, 0x81) # Use blocking data retreival and enable delay for mag sample rate mismatch
+        self._write_u8(_XGTYPE, MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
         
+
         # soft reset & reboot magnetometer
         #self._write_u8(_MAGTYPE, _AK8963_CNTL2, 0x01)
         #time.sleep(0.01)
         
-        
-
-        # enable gyro continous
-        # TODO 
-
-        # Enable the accelerometer continous
-        
         # enable mag continous
         #TODO
         # Set the default ranges for the various sensors
-        self._filter_bandwidth = Bandwidth.BAND_260_HZ
-        self._gyro_range = GyroRange.RANGE_500_DPS
-        self._accel_range = Range.RANGE_2_G
-
-        # calibrate mag
-        self._mode = Mode.FUSE
-        raw_adjustment = self._raw_adjustment_data
-        self. _mode = Mode.POWERDOWN
-        sleep(0.100)
-
-        asax = raw_adjustment[0][0]
-        asay = raw_adjustment[1][0]
-        asaz = raw_adjustment[2][0]
-
-        print(asax, asay, asaz)
-
-        self._offset = (143.725, 6.00244, -21.6755)
-        self._scale = (1.07464, 0.97619, 0.956875)
-        self._adjustment = (
-            ((asax - 128.0) / 256.0) + 1.0,
-            ((asay - 128.0) / 256.0) + 1.0,
-            ((asaz - 128.0) / 256.0) + 1.0
-        )
-
-        print(self._adjustment)
-
-        self._mag_range = Sensitivity.SENSE_16BIT
-        self._mode = Mode.MEASURE_8HZ
-        sleep(0.100)
+##        self._filter_bandwidth = Bandwidth.BAND_260_HZ
+##        self._gyro_range = GyroRange.RANGE_500_DPS
+##        self._accel_range = Range.RANGE_2_G
+##
+##        # calibrate mag
+##        self._mode = Mode.FUSE
+##        raw_adjustment = self._raw_adjustment_data
+##        self. _mode = Mode.POWERDOWN
+##        sleep(0.100)
+##
+##        asax = raw_adjustment[0][0]
+##        asay = raw_adjustment[1][0]
+##        asaz = raw_adjustment[2][0]
+##
+##        print(asax, asay, asaz)
+##
+##        self._offset = (143.725, 6.00244, -21.6755)
+##        self._scale = (1.07464, 0.97619, 0.956875)
+##        self._adjustment = (
+##            ((asax - 128.0) / 256.0) + 1.0,
+##            ((asay - 128.0) / 256.0) + 1.0,
+##            ((asaz - 128.0) / 256.0) + 1.0
+##        )
+##
+##        print(self._adjustment)
+##
+##        self._mag_range = Sensitivity.SENSE_16BIT
+##        self._mode = Mode.MEASURE_8HZ
+##        sleep(0.100)
 
 
         if self._device_id != _MPU9250_DEVICE_ID:
