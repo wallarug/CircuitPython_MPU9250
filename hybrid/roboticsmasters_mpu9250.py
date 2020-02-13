@@ -95,7 +95,7 @@ _MPU6500_ACCEL_CONFIG2    = const(0x1D) # Accelerometer config register
 _MPU6500_INT_PIN_CONFIG   = const(0x37) # Interrupt pin configuration register
 _MPU6500_INT_PIN_ENABLE   = const(0x38) # Interrupt pin enable register
 _MPU6500_ACCEL_OUT        = const(0x3B) # base address for sensor data reads
-_MPU6500_TEMP_OUT         = const(0x41) # Temperature data high byte register
+_MPU6500_TEMP_OUT         = const(0x42) # Temperature data low byte register (low: 0x41)
 _MPU6500_GYRO_OUT         = const(0x43) # base address for sensor data reads
 _MPU6500_SIG_PATH_RESET   = const(0x68) # register to reset sensor signal paths
 _MPU6500_USER_CTRL        = const(0x6A) # FIFO and I2C Master control register
@@ -258,7 +258,7 @@ class MPU9250:
         want to use the temperature property!
         """
         # Read temp sensor - TODO: was low bit _MPU6500_TEMP_OUT
-        self._read_bytes(_XGTYPE, 0x80 | 0x42, 2,
+        self._read_bytes(_XGTYPE, 0x80 | _MPU6500_TEMP_OUT, 2,
                          self._BUFFER)
         temp = ((self._BUFFER[1] << 8) | self._BUFFER[0]) >> 4
         return _twos_comp(temp, 12)
@@ -267,8 +267,6 @@ class MPU9250:
     def temperature(self):
         """The current temperature in  º C"""
         raw_temperature = self.read_temp_raw()
-        #temp = (raw_temperature + 12412.0) / 340.0
-        #temp = (raw_temperature / 340.0) + 36.53
         temp = (raw_temperature / 333.87) + 21.0
         return temp
 
