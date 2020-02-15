@@ -214,44 +214,6 @@ class MPU9250:
         self._write_u8(_XGTYPE, _MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
         
 
-        # soft reset & reboot magnetometer
-        #self._write_u8(_MAGTYPE, _AK8963_CNTL2, 0x01)
-        #time.sleep(0.01)
-        
-        # enable mag continous
-        #TODO
-        # Set the default ranges for the various sensors
-##        self._filter_bandwidth = Bandwidth.BAND_260_HZ
-##        self._gyro_range = GyroRange.RANGE_500_DPS
-##        self._accel_range = Range.RANGE_2_G
-##
-##        # calibrate mag
-##        self._mode = Mode.FUSE
-##        raw_adjustment = self._raw_adjustment_data
-##        self. _mode = Mode.POWERDOWN
-##        sleep(0.100)
-##
-##        asax = raw_adjustment[0][0]
-##        asay = raw_adjustment[1][0]
-##        asaz = raw_adjustment[2][0]
-##
-##        print(asax, asay, asaz)
-##
-##        self._offset = (143.725, 6.00244, -21.6755)
-##        self._scale = (1.07464, 0.97619, 0.956875)
-##        self._adjustment = (
-##            ((asax - 128.0) / 256.0) + 1.0,
-##            ((asay - 128.0) / 256.0) + 1.0,
-##            ((asaz - 128.0) / 256.0) + 1.0
-##        )
-##
-##        print(self._adjustment)
-##
-##        self._mag_range = Sensitivity.SENSE_16BIT
-##        self._mode = Mode.MEASURE_8HZ
-##        sleep(0.100)
-
-
     def read_temp_raw(self):
         """Read the raw temperature sensor value and return it as a 12-bit
         signed value.  If you want the temperature in nice units you probably
@@ -460,6 +422,59 @@ class MPU9250:
         mag_z = (raw_z * mag_scale * self._scale[2]) - self._offset[1]
 
         return (mag_x, mag_y, mag_z)
+
+    def initAK8963(self):
+        """ setup the AK8963 to be used with ONLY I2C native """
+        # soft reset & reboot magnetometer
+        #self._write_u8(_MAGTYPE, _AK8963_CNTL2, 0x01)
+        #time.sleep(0.01)
+        
+        # enable mag continous
+        #TODO
+        # Set the default ranges for the various sensors
+##        self._filter_bandwidth = Bandwidth.BAND_260_HZ
+##        self._gyro_range = GyroRange.RANGE_500_DPS
+        
+        # calibrate mag
+        self._mode = Mode.FUSE
+        raw_adjustment = self._raw_adjustment_data
+        self. _mode = Mode.POWERDOWN
+        sleep(0.100)
+
+        asax = raw_adjustment[0][0]
+        asay = raw_adjustment[1][0]
+        asaz = raw_adjustment[2][0]
+
+        print(asax, asay, asaz)
+
+        self._offset = (143.725, 6.00244, -21.6755)
+        self._scale = (1.07464, 0.97619, 0.956875)
+        self._adjustment = (
+            ((asax - 128.0) / 256.0) + 1.0,
+            ((asay - 128.0) / 256.0) + 1.0,
+            ((asaz - 128.0) / 256.0) + 1.0
+        )
+
+        print(self._adjustment)
+
+        self._mag_range = Sensitivity.SENSE_16BIT
+        self._mode = Mode.MEASURE_8HZ
+        sleep(0.100)
+        
+
+    def initAK8963slave(self):
+        """ setup the AK8963 to be used in slave mode """
+        # Configure Interrupts and Bypass Enable
+        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_CONFIG, 0x10) # INT is 50 microsecond pulse and any read to clear 
+        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_ENABLE, 0x01) # Enable data ready (bit 0) interrupt
+        time.sleep(0.01)
+
+        self._write_u8(_XGTYPE, _MPU6500_USER_CTRL, 0x20) # Enable I2C Master mode
+        self._write_u8(_XGTYPE, _MPU6500_I2C_MST_CTRL, 0x1D) # I2C configuration STOP after each transaction, master I2C bus at 400 KHz
+        self._write_u8(_XGTYPE, _MPU6500_I2C_MST_DELAY_CTRL, 0x81) # Use blocking data retreival and enable delay for mag sample rate mismatch
+        self._write_u8(_XGTYPE, _MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
+
+        
 
     def calibrate(self, count=256, delay=0.200):
         """
