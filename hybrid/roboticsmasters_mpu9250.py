@@ -308,7 +308,7 @@ class MPU9250:
         gyro_z = (raw_z / gyro_scale)
 
         return (gyro_x, gyro_y, gyro_z)
-
+    
     @property
     def cycle(self):
         """Enable or disable perodic measurement at a rate set by `cycle_rate`.
@@ -423,11 +423,40 @@ class MPU9250:
 
         return (mag_x, mag_y, mag_z)
 
+    def read_gyro_calibration_raw(self):
+        """Read the raw gyroscope calibration values and return it as a
+        3-tuple of X, Y, Z axis values that are 16-bit unsigned values. 
+        """
+        # Read the calibration
+        self._read_bytes(_MAGTYPE, 0x80 | _AK8963_ASAX, 3,
+                         self._BUFFER)
+        raw_x, raw_y, raw_z = struct.unpack_from('<bbb', self._BUFFER[0:3])
+        return (raw_x, raw_y, raw_z)
+
     def initAK8963(self):
         """ setup the AK8963 to be used with ONLY I2C native """
+        # Enable I2C bypass to access for MPU9250 magnetometer access.
+        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_CONFIG, 0x12)
+        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_ENABLE, 0x01)
+        time.sleep(0.1)
+        
+        # Check I2C Enabled
+
+
         # soft reset & reboot magnetometer
-        #self._write_u8(_MAGTYPE, _AK8963_CNTL2, 0x01)
-        #time.sleep(0.01)
+        self._write_u8(_MAGTYPE, _AK8963_CNTL, 0x00) # power down magnetometer
+        time.sleep(0.01)
+        self._write_u8(_MAGTYPE, _AK8963_CNTL, 0x0F) # enter fuse rom mode
+        time.sleep(0.01)
+
+        # factory calibration
+        raw_adjustment = self.read_gyro_calibration_raw()
+        asax = raw_adjustment[0]
+        asay = raw_adjustment[1]
+        asaz = raw_adjustment[2]
+
+        
+        
         
         # enable mag continous
         #TODO
