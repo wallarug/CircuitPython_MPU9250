@@ -154,7 +154,8 @@ class MPU9250:
         # defaults
         Ascale = AccelRange.RANGE_2_G
         Gscale = GyroRange.RANGE_500_DPS
-        Mscale = Sensitivity.SENSE_14BIT
+        Mscale = MagSensitivity.16BIT
+        Mmode = MagMode.MEASURE_100HZ
         sampleRate = 0x04
 
         self._filter_bandwidth = Bandwidth.BAND_260_HZ
@@ -202,6 +203,12 @@ class MPU9250:
         c = c & ~0x0F # Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
         c = c | 0x03 # Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
         self._write_u8(_XGTYPE, _MPU6500_ACCEL_CONFIG2, c)
+
+
+        # Magnetometer configuration values
+        self._offset = (143.725, 6.00244, -21.6755)
+        self._scale = (1.07464, 0.97619, 0.956875)
+        self._adjustment = (0,0,0)
 
         # Configure Interrupts and Bypass Enable
         self._write_u8(_XGTYPE, _MPU6500_INT_PIN_CONFIG, 0x10) # INT is 50 microsecond pulse and any read to clear 
@@ -430,18 +437,15 @@ class MPU9250:
         # Read the calibration
         self._read_bytes(_MAGTYPE, 0x80 | _AK8963_ASAX, 3,
                          self._BUFFER)
-        raw_x, raw_y, raw_z = struct.unpack_from('<bbb', self._BUFFER[0:3])
+        raw_x, raw_y, raw_z = struct.unpack_from('<BBB', self._BUFFER[0:3])
         return (raw_x, raw_y, raw_z)
 
-    def initAK8963(self):
+    def initAK8963(self, scale, mode):
         """ setup the AK8963 to be used with ONLY I2C native """
         # Enable I2C bypass to access for MPU9250 magnetometer access.
         self._write_u8(_XGTYPE, _MPU6500_INT_PIN_CONFIG, 0x12)
         self._write_u8(_XGTYPE, _MPU6500_INT_PIN_ENABLE, 0x01)
         time.sleep(0.1)
-        
-        # Check I2C Enabled
-
 
         # soft reset & reboot magnetometer
         self._write_u8(_MAGTYPE, _AK8963_CNTL, 0x00) # power down magnetometer
@@ -451,33 +455,12 @@ class MPU9250:
 
         # factory calibration
         raw_adjustment = self.read_gyro_calibration_raw()
-        asax = raw_adjustment[0]
-        asay = raw_adjustment[1]
-        asaz = raw_adjustment[2]
-
-        
-        
-        
-        # enable mag continous
-        #TODO
-        # Set the default ranges for the various sensors
-##        self._filter_bandwidth = Bandwidth.BAND_260_HZ
-##        self._gyro_range = GyroRange.RANGE_500_DPS
-        
-        # calibrate mag
-        self._mode = Mode.FUSE
-        raw_adjustment = self._raw_adjustment_data
-        self. _mode = Mode.POWERDOWN
-        sleep(0.100)
-
-        asax = raw_adjustment[0][0]
-        asay = raw_adjustment[1][0]
-        asaz = raw_adjustment[2][0]
+        asax = _twos_comp(raw_adjustment[0], 8)
+        asay = _twos_comp(raw_adjustment[1], 8)
+        asaz = _twos_comp(raw_adjustment[2], 8)
 
         print(asax, asay, asaz)
 
-        self._offset = (143.725, 6.00244, -21.6755)
-        self._scale = (1.07464, 0.97619, 0.956875)
         self._adjustment = (
             ((asax - 128.0) / 256.0) + 1.0,
             ((asay - 128.0) / 256.0) + 1.0,
@@ -486,10 +469,11 @@ class MPU9250:
 
         print(self._adjustment)
 
-        self._mag_range = Sensitivity.SENSE_16BIT
-        self._mode = Mode.MEASURE_8HZ
-        sleep(0.100)
-        
+        # soft reset & reboot magnetometer
+        self._write_u8(_MAGTYPE, _AK8963_CNTL, 0x00) # power down magnetometer
+        time.sleep(0.01)
+        self._write_u8(_MAGTYPE, _AK8963_CNTL, scale << 4 | mode) # Set magnetometer data resolution and sample ODR
+        time.sleep(0.01)
 
     def initAK8963slave(self):
         """ setup the AK8963 to be used in slave mode """
@@ -765,7 +749,7 @@ class Rate: # pylint: disable=too-few-public-methods
     CYCLE_20_HZ = 2   # 20 Hz
     CYCLE_40_HZ = 3   # 40 Hz    
     
-class Sensitivity:
+class MagSensitivity:
     """Allowed values for `range`.
 
     - ``Rate.CYCLE_1_25_HZ``
@@ -773,10 +757,10 @@ class Sensitivity:
     - ``Rate.CYCLE_20_HZ``
     - ``Rate.CYCLE_40_HZ``
     """
-    SENSE_14BIT = 0
-    SENSE_16BIT = 1
+    14BIT = 0
+    16BIT = 1
 
-class Mode:
+class MagMode:
     """Allowed values for `mode` setting
 
     - ``Mode.MODE_POWERDOWN``
