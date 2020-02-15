@@ -113,7 +113,6 @@ _MPU6500_I2C_MST_DELAY_CTRL = const(0x67) #
 _MPU6500_EXT_SENS_DATA_00   = const(0x49) #
 
 
-
 _AK8963_DEFAULT_ADDRESS    = const(0x0c) # AK8963 default i2c address
 _AK8963_DEVICE_ID          = const(0x48) # MPU9250 WHO_AM_I value
 
@@ -218,15 +217,7 @@ class MPU9250:
         self._adjustment = (0,0,0)
 
         # Configure Interrupts and Bypass Enable
-        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_CONFIG, 0x10) # INT is 50 microsecond pulse and any read to clear 
-        self._write_u8(_XGTYPE, _MPU6500_INT_PIN_ENABLE, 0x01) # Enable data ready (bit 0) interrupt
-        time.sleep(0.01)
-
-        self._write_u8(_XGTYPE, _MPU6500_USER_CTRL, 0x20) # Enable I2C Master mode
-        self._write_u8(_XGTYPE, _MPU6500_I2C_MST_CTRL, 0x1D) # I2C configuration STOP after each transaction, master I2C bus at 400 KHz
-        self._write_u8(_XGTYPE, _MPU6500_I2C_MST_DELAY_CTRL, 0x81) # Use blocking data retreival and enable delay for mag sample rate mismatch
-        self._write_u8(_XGTYPE, _MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
-        
+        self.initAK8963()
 
     def read_temp_raw(self):
         """Read the raw temperature sensor value and return it as a 12-bit
@@ -494,7 +485,28 @@ class MPU9250:
         self._write_u8(_XGTYPE, _MPU6500_I2C_MST_DELAY_CTRL, 0x81) # Use blocking data retreival and enable delay for mag sample rate mismatch
         self._write_u8(_XGTYPE, _MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
 
+
+    def i2c_slave(self, addr, reg, data, ,size=1, read=False):
+
+        if read:
+            self._write_u8(_XGTYPE, _MPU6500_I2C_SLV0_ADDR, addr)
+            self._write_u8(_XGTYPE, _MPU6500_I2C_SLV0_REG, reg)
+            self._write_u8(_XGTYPE, _MPU6500_I2C_SLV0_DO, data)
+            self._write_u8(_XGTYPE, _MPU6500_I2C_SLV0_CTRL, 0x80+size)
+            time.sleep(0.05)
+            
+        else:
+            self._write_u8(_XGTYPE, _MPU6500_I2C_SLV0_ADDR, addr | 0x80)
+            self._write_u8(_XGTYPE, _MPU6500_I2C_SLV0_REG, reg)
+            self._write_u8(_XGTYPE, _MPU6500_I2C_SLV0_CTRL, size)
+            time.sleep(0.05)
+
+            # TODO fix this:
+            self._read_bytes(_XGTYPE, 0x80 | _MPU6500_EXT_SEN_DATA_00, size, self._BUFFER)
+            raw_x, raw_y, raw_z = struct.unpack_from('<BBB', self._BUFFER[0:3])
+            return (raw_x, raw_y, raw_z)
         
+    
 
         
 
