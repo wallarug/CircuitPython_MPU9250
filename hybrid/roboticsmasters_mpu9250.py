@@ -98,13 +98,20 @@ _MPU6500_ACCEL_OUT        = const(0x3B) # base address for sensor data reads
 _MPU6500_TEMP_OUT         = const(0x42) # Temperature data low byte register (low: 0x41)
 _MPU6500_GYRO_OUT         = const(0x43) # base address for sensor data reads
 _MPU6500_SIG_PATH_RESET   = const(0x68) # register to reset sensor signal paths
-_MPU6500_USER_CTRL        = const(0x6A) # FIFO and I2C Master control register
-_MPU6500_I2C_MST_CTRL     = const(0x24) #
-_MPU6500_I2C_MST_DELAY_CTRL = const(0x67) #
-_MPU6500_I2C_SLV4_CTRL    = const(0x34) #
 _MPU6500_PWR_MGMT_1       = const(0x6B) # Primary power/sleep control register
 _MPU6500_PWR_MGMT_2       = const(0x6C) # Secondary power/sleep control register
 _MPU6500_WHO_AM_I         = const(0x75) # Device ID register
+
+_MPU6500_USER_CTRL          = const(0x6A) # FIFO and I2C Master control register
+_MPU6500_I2C_SLV4_CTRL      = const(0x34) #
+_MPU6500_I2C_MST_CTRL       = const(0x24) #
+_MPU6500_I2C_SLV0_ADDR      = const(0x25) #
+_MPU6500_I2C_SLV0_REG       = const(0x26) #
+_MPU6500_I2C_SLV0_CTRL      = const(0x27) #
+_MPU6500_I2C_SLV0_DO        = const(0x63) #
+_MPU6500_I2C_MST_DELAY_CTRL = const(0x67) #
+_MPU6500_EXT_SENS_DATA_00   = const(0x49) #
+
 
 
 _AK8963_DEFAULT_ADDRESS    = const(0x0c) # AK8963 default i2c address
@@ -486,6 +493,8 @@ class MPU9250:
         self._write_u8(_XGTYPE, _MPU6500_I2C_MST_CTRL, 0x1D) # I2C configuration STOP after each transaction, master I2C bus at 400 KHz
         self._write_u8(_XGTYPE, _MPU6500_I2C_MST_DELAY_CTRL, 0x81) # Use blocking data retreival and enable delay for mag sample rate mismatch
         self._write_u8(_XGTYPE, _MPU6500_I2C_SLV4_CTRL, 0x01) # Delay mag data retrieval to once every other accel/gyro data sample
+
+        
 
         
 
