@@ -503,7 +503,7 @@ class MPU9250:
 
             # TODO fix this:
             self._read_bytes(_XGTYPE, 0x80 | _MPU6500_EXT_SEN_DATA_00, size, self._BUFFER)
-            raw_x, raw_y, raw_z = struct.unpack_from('<BBB', self._BUFFER[0:3])
+            raw_x, raw_y, raw_z = struct.unpack_from('<BBB', self._BUFFER[0:size])
             return (raw_x, raw_y, raw_z)
         
     
