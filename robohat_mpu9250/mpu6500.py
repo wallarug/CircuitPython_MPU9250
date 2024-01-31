@@ -230,7 +230,7 @@ class MPU6500:
         device = self.i2c
         with device as i2c:
             self._BUFFER[0] = address & 0xFF
-            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.write(self._BUFFER, end=1)
             i2c.readinto(self._BUFFER, end=1)
         return self._BUFFER[0]
 
@@ -238,7 +238,7 @@ class MPU6500:
         device = self.i2c
         with device as i2c:
             self._BUFFER[0] = address & 0xFF
-            i2c.write(self._BUFFER, end=1, stop=False)
+            i2c.write(self._BUFFER, end=1)
             i2c.readinto(self._BUFFER, end=count)
         if count == 2:
             buf = bytearray(4)
